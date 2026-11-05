@@ -14,7 +14,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "e2e": "tsx scripts/e2e.ts",
-    "demo": "MIN_PAYOUT_CENTS=10 tsx src/server.ts"
+    "demo": "MIN_PAYOUT_CENTS=10 tsx src/server.ts",
+    "smoke:paypal": "tsx scripts/paypal-smoke.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.5.0",
@@ -23,12 +24,12 @@
     "cheerio": "^1.2.0",
     "hono": "^4.13.16",
     "yaml": "^2.9.1",
-    "zod": "^4.6.7"
+    "zod": "^4.6.7",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^26.6.6",
-    "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^3.2.7"
   }

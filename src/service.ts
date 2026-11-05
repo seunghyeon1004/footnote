@@ -64,7 +64,7 @@ export async function runAnswer(ctx: Ctx, answerId: string): Promise<void> {
     // 1. research -----------------------------------------------------------------------------
     setStatus(db, answerId, "researching");
     ev("researching", `${llm.fixture ? "Fixture" : llm.provider} research agent started`);
-    const library = DEMO_SITES.map((s) => ({ url: new URL(s.url, cfg.publicUrl).toString(), title: s.title }));
+    const library = DEMO_SITES.map((s) => ({ url: new URL(s.url, cfg.publicUrl).toString(), title: s.topic ? `${s.title} (${s.topic})` : s.title }));
     const rctx: ResearchCtx = { fetchPage, log: ev, library };
     const research = await llm.research(a.question, rctx);
     const seen = new Set<string>();
@@ -167,7 +167,7 @@ export async function settleNow(ctx: Ctx, log: (m: string) => void = () => {}): 
     if (!llm.fixture) {
       settledBy = "agent";
       try {
-        log("Settlement agent started: Claude drives the PayPal Payouts tools");
+        log(`Settlement agent started: ${llm.model} drives the PayPal Payouts tools`);
         await llm.settle({
           minPayoutCents: cfg.minPayoutCents,
           listSettleable: () => listSettleable(db, cfg.minPayoutCents),

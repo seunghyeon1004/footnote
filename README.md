@@ -22,7 +22,7 @@ git clone <this repo> footnote && cd footnote
 npm install
 cp .env.example .env        # optional: add ANTHROPIC_API_KEY and PayPal sandbox keys
 npm run demo                # http://localhost:3000
-npm test                    # 80+ tests
+npm test                    # 86 tests
 ```
 
 With **no keys at all** it still runs end to end, with two clearly labelled stand-ins shown in the UI header:
@@ -30,7 +30,7 @@ With **no keys at all** it still runs end to end, with two clearly labelled stan
 | Missing                                | What runs instead                                                                       | Label in UI          |
 | -------------------------------------- | --------------------------------------------------------------------------------------- | -------------------- |
 | `PAYPAL_CLIENT_ID` / `_SECRET`         | built-in PayPal **sandbox simulator** at `/_sim/paypal` (same paths and JSON as PayPal)  | `PayPal: simulator`  |
-| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | deterministic **fixture** research over the bundled demo creator sites (no model call)   | `FIXTURE MODE`       |
+| `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` / `OPENAI_API_KEY` | deterministic **fixture** research over the bundled demo creator sites (no model call)   | `FIXTURE MODE`       |
 
 For the real thing add `ANTHROPIC_API_KEY` (default model `claude-sonnet-5-5`, with web search) and your PayPal
 sandbox keys: see [docs/SANDBOX.md](docs/SANDBOX.md). The payee resolution, injection stripping, ledger, escrow and
@@ -98,10 +98,14 @@ The settlement guardrail is the point: even a fully compromised model can only p
 shows as owed, for exactly the amount owed, at or above the minimum, inside the batch cap. Unit tests cover each
 rejection (`test/ledger.test.ts`, `test/anthropic.test.ts`).
 
-> **PayPal Agent Toolkit note.** `@paypal/agent-toolkit` (v1.11) exposes orders, invoices, subscriptions, disputes
-> and reporting but no Payouts tools. Footnote therefore defines the missing Payouts capability itself, as agent
-> tools with the same name-and-JSON-schema shape, executed against the official Payouts v1 REST API. (Wiring them
-> into a toolkit-style MCP server is a straightforward next step.)
+> **PayPal Agent Toolkit / MCP.** `@paypal/agent-toolkit` (v1.11, which also powers PayPal's MCP server) ships tools for
+> orders, invoices, subscriptions, disputes, shipment tracking and reporting. It has **no Payouts tools** (verified in
+> the published package), and Payouts is the core of this product, so the payout step cannot be executed through the
+> toolkit today. Footnote therefore gives its agents the missing capability itself: `list_settleable_payees` and
+> `create_payout_batch` are agent tools (same name/JSON-schema shape as toolkit tools) that execute against the
+> official Payouts v1 REST API, with a ledger-side guard in front. The agent loop is the same function-calling pattern
+> the toolkit's `ai-sdk` / `openai` / `mcp` adapters use, so these two tools can be exposed as an MCP server next to
+> PayPal's with no design change.
 
 ### Guardrails (all enforced in code, all tested)
 
@@ -144,7 +148,12 @@ creator page. Undo with `--undo`.
 | `PAYPAL_WEBHOOK_ID` | none | enables signature-verified webhooks (polling always on) |
 | `PAYPAL_SIMULATOR` | auto | `1` forces the simulator even with keys |
 | `ANTHROPIC_API_KEY` | none | real research/attribution/settlement with Claude |
-| `OPENAI_API_KEY` | none | alternative provider (no built-in web search) |
+| `GEMINI_API_KEY` | none | alternative provider (Gemini function calling); `LLM_PROVIDER=gemini` forces it when several keys exist |
+| `OPENAI_API_KEY` | none | alternative provider (untested against the live API) |
+| `SERPER_API_KEY` | none | web search for the Gemini/OpenAI providers (Claude uses Anthropic's server-side search) |
+| `WELCOME_CREDITS_CENTS` | `0` | free starting credits per session (hosted demo) |
+| `DAILY_ANSWER_CAP` | `0` (off) | global answers per 24h (hosted demo budget guard) |
+| `ALLOW_DEV_GRANT` | off | test-only `POST /api/dev/grant` to fund a session without a PayPal approval |
 | `FOOTNOTE_MODEL` | `claude-sonnet-5-5` | model id |
 | `WEB_SEARCH` | `on` | `off` disables the Anthropic web-search tool |
 | `FOOTNOTE_FALLBACKS` | `on` | opt in to Anthropic server-side refusal fallback; auto-disabled if the API rejects it |
@@ -157,14 +166,30 @@ creator page. Undo with `--undo`.
 | `MAX_BATCH_CENTS` | `2000` | settlement batch cap |
 | `ESCROW_TTL_DAYS` | `30` | escrow refund horizon |
 
+## Hosted demo (Render)
+
+`render.yaml` is a Render Blueprint (free plan): connect the repo, set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`,
+`ANTHROPIC_API_KEY` (all `sync: false`), deploy. `PUBLIC_URL` comes from Render's `RENDER_EXTERNAL_URL`; new sessions
+get `WELCOME_CREDITS_CENTS` so judges can try it without a PayPal buyer login, and `DAILY_ANSWER_CAP` guards the LLM
+budget. SQLite lives on the instance's ephemeral disk (fine for a demo; attach a Render disk to persist). For webhook
+push updates add `https://<service>.onrender.com/api/webhooks/paypal` in the PayPal app and set `PAYPAL_WEBHOOK_ID`.
+
 ## Tests and evidence
 
 ```bash
-npm test          # 80+ vitest tests: attribution, payee resolution, ledger, injection, PayPal client, claim, e2e HTTP
+npm test          # 86 vitest tests: attribution, payee resolution, ledger, injection, PayPal client, claim, e2e HTTP
 npm run typecheck
 npm run demo &    # then:
 npm run e2e       # drives the whole flow against the running server and prints a receipt
 ```
+
+Real-run transcripts (secrets never printed) are in [`docs/evidence/`](docs/evidence):
+
+* `real-claude-real-paypal-sandbox.txt`: `claude-sonnet-5-5` researched with tools, attributed four sources, stripped the
+  injection on `quick-compost-hacks`, and the Claude settlement agent created a **real PayPal sandbox Payouts batch**.
+* `real-gemini-simulated-paypal.txt`: same flow with Gemini as provider, with the PayPal simulator.
+* `paypal-sandbox-smoke.txt`: `npm run smoke:paypal` against the real sandbox (OAuth, Orders v2 create, Payouts batch;
+  a placeholder email correctly ends `UNCLAIMED`).
 
 The HTTP integration test boots the real app on a free port with the simulator and fixture LLM and covers checkout,
 fee reservation, every payee branch, injection stripping, webhook-driven status updates, escrow sweep and the
@@ -183,7 +208,7 @@ src/
   fetcher.ts        SSRF-guarded fetch
   paypal/client.ts  Orders v2, Payouts v1, Webhook verification
   paypal/sim.ts     PayPal sandbox simulator (only when no credentials)
-  llm/              anthropic.ts · openai.ts · fixture.ts · prompts.ts
+  llm/              anthropic.ts · gemini.ts · openai.ts · fixture.ts · prompts.ts
 demo-sites/         the seven creator sites
 public/             the web app (no build step)
 docs/               footnote-spec.md · SANDBOX.md · DEMO.md · API.md
@@ -195,11 +220,13 @@ docs/               footnote-spec.md · SANDBOX.md · DEMO.md · API.md
 * PayPal Payouts cannot target `paypal.me` handles, so those creators are `LINK_ONLY` until they publish an email.
 * Attribution is a model judgment; Footnote makes it explainable (one line per source) rather than provably fair.
 * The fixture LLM is a stand-in, not a model. Real answers need an API key.
+* Checkout approval in the real sandbox needs a human buyer login; the e2e script funds sessions via the test-only
+  `ALLOW_DEV_GRANT` endpoint instead. PayPal Payouts to non-sandbox emails end `UNCLAIMED` by design.
 
 ## Tools used
 
 Claude (`claude-sonnet-5-5`, Anthropic Messages API: tool use, server-side web search, structured outputs) for research,
-attribution and settlement; PayPal Orders v2, Payouts v1 and Notifications v1; Hono, better-sqlite3, cheerio, vitest.
+attribution and settlement (Gemini and OpenAI providers are pluggable alternatives); PayPal Orders v2, Payouts v1 and Notifications v1; Hono, better-sqlite3, cheerio, vitest.
 UI scaffolding was drafted with OpenAI Codex CLI and reviewed.
 
 ## License

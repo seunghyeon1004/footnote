@@ -41,7 +41,7 @@ export function createApp(ctx: Ctx): Hono {
     let u = sid ? (db.prepare(`SELECT * FROM users WHERE id=?`).get(sid) as any) : null;
     if (!u) {
       sid = rid("u");
-      db.prepare(`INSERT INTO users(id,name,balance_cents,created_at) VALUES (?,?,?,?)`).run(sid, "Guest", 0, now());
+      db.prepare(`INSERT INTO users(id,name,balance_cents,created_at) VALUES (?,?,?,?)`).run(sid, "Guest", cfg.welcomeCents, now());
       setCookie(c, "fn_sid", sid, { path: "/", httpOnly: true, sameSite: "Lax", maxAge: 60 * 60 * 24 * 30 });
       u = db.prepare(`SELECT * FROM users WHERE id=?`).get(sid);
     }
@@ -100,6 +100,16 @@ export function createApp(ctx: Ctx): Hono {
       return c.redirect("/#/?checkout=error");
     }
   });
+  // Test affordance (off by default): lets automated runs fund a session without a human PayPal approval.
+  if (cfg.devGrant) {
+    app.post("/api/dev/grant", async (c) => {
+      const u = userOf(c);
+      const b = await c.req.json().catch(() => ({}));
+      const cents = Math.min(1000, Math.max(1, Math.floor(Number(b.cents) || 500)));
+      db.prepare(`UPDATE users SET balance_cents = balance_cents + ? WHERE id=?`).run(cents, u.id);
+      return c.json({ granted: cents });
+    });
+  }
   app.get("/api/checkout/cancel", (c) => c.redirect("/#/?checkout=cancelled"));
 
   // ---- ask --------------------------------------------------------------------------------
@@ -111,6 +121,10 @@ export function createApp(ctx: Ctx): Hono {
     if (question.length < 3 || question.length > 500) return c.json({ error: "bad_question" }, 400);
     if (!Number.isInteger(fee) || fee < cfg.minFeeCents || fee > cfg.maxFeeCents) return c.json({ error: "bad_fee", min: cfg.minFeeCents, max: cfg.maxFeeCents }, 400);
     const own = typeof b.ownDomain === "string" ? b.ownDomain.trim().slice(0, 253) || null : null;
+    if (cfg.dailyAnswerCap > 0) {
+      const since = new Date(Date.now() - 86400_000).toISOString();
+      if ((db.prepare(`SELECT COUNT(*) AS n FROM answers WHERE created_at > ?`).get(since) as any).n >= cfg.dailyAnswerCap) return c.json({ error: "demo_capacity", message: "Daily demo capacity reached; try again tomorrow." }, 429);
+    }
     const running = (db.prepare(`SELECT COUNT(*) AS n FROM answers WHERE user_id=? AND status NOT IN ('done','error')`).get(u.id) as any).n;
     if (running >= 2) return c.json({ error: "too_many_running" }, 429);
     const id = rid("a");

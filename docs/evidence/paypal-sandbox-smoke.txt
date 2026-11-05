@@ -1,0 +1,10 @@
+1. OAuth ok
+2. Orders v2 ok: 7KS93718X35557500 PAYER_ACTION_REQUIRED 
+   approve: https://www.sandbox.paypal.com/checkoutnow?token=7KS93718X35557500
+3. Payouts v1 batch created: M4AHGP5MKZK26 PENDING
+   poll: PENDING footnote-smoke@example.com:PENDING
+   poll: PENDING footnote-smoke@example.com:PENDING
+   poll: PROCESSING footnote-smoke@example.com:PENDING
+   poll: PROCESSING footnote-smoke@example.com:PENDING
+   poll: PROCESSING footnote-smoke@example.com:PENDING
+   poll: PROCESSING footnote-smoke@example.com:UNCLAIMED

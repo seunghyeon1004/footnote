@@ -5,7 +5,7 @@ export interface Config {
   publicUrl: string;
   dbPath: string;
   paypal: { clientId: string; clientSecret: string; baseUrl: string; webhookId: string; simulator: boolean };
-  llm: { provider: "anthropic" | "openai" | "fixture"; model: string; webSearch: boolean; fallbacks: boolean };
+  llm: { provider: "anthropic" | "openai" | "gemini" | "fixture"; model: string; webSearch: boolean; fallbacks: boolean };
   minPayoutCents: number;
   minFeeCents: number;
   maxFeeCents: number;
@@ -14,6 +14,9 @@ export interface Config {
   injectionPenalty: number;
   escrowTtlDays: number;
   maxBatchCents: number;
+  devGrant: boolean;
+  welcomeCents: number;
+  dailyAnswerCap: number;
   packs: { id: string; label: string; cents: number }[];
 }
 
@@ -24,18 +27,24 @@ const num = (v: string | undefined, d: number) => {
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const port = num(env.PORT, 3000);
-  const publicUrl = (env.PUBLIC_URL || `http://localhost:${port}`).replace(/\/$/, "");
+  const publicUrl = (env.PUBLIC_URL || env.RENDER_EXTERNAL_URL || `http://localhost:${port}`).replace(/\/$/, "");
   const hasPayPal = !!(env.PAYPAL_CLIENT_ID && env.PAYPAL_CLIENT_SECRET);
   const forceSim = env.PAYPAL_SIMULATOR === "1";
   const simulator = forceSim || !hasPayPal;
+  const forced = env.LLM_PROVIDER as Config["llm"]["provider"] | undefined;
   const provider: Config["llm"]["provider"] =
-    env.LLM_PROVIDER === "fixture" ? "fixture"
+    forced === "fixture" ? "fixture"
+    : forced === "gemini" && env.GEMINI_API_KEY ? "gemini"
+    : forced === "openai" && env.OPENAI_API_KEY ? "openai"
+    : forced === "anthropic" && env.ANTHROPIC_API_KEY ? "anthropic"
     : env.ANTHROPIC_API_KEY ? "anthropic"
     : env.OPENAI_API_KEY ? "openai"
+    : env.GEMINI_API_KEY ? "gemini"
     : "fixture";
   const model =
     provider === "anthropic" ? env.FOOTNOTE_MODEL || "claude-sonnet-5-5"
     : provider === "openai" ? env.FOOTNOTE_MODEL || env.OPENAI_MODEL || "gpt-4.1"
+    : provider === "gemini" ? env.FOOTNOTE_MODEL || "gemini-2.5-flash"
     : "fixture";
   return {
     port,
@@ -62,6 +71,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     injectionPenalty: num(env.INJECTION_PENALTY, 0.5),
     escrowTtlDays: num(env.ESCROW_TTL_DAYS, 30),
     maxBatchCents: num(env.MAX_BATCH_CENTS, 2000),
+    devGrant: env.ALLOW_DEV_GRANT === "1",
+    welcomeCents: num(env.WELCOME_CREDITS_CENTS, 0),
+    dailyAnswerCap: num(env.DAILY_ANSWER_CAP, 0),
     packs: [
       { id: "pack5", label: "$5 starter pack", cents: 500 },
       { id: "pack10", label: "$10 pack", cents: 1000 },

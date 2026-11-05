@@ -1,8 +1,9 @@
 import type { LLM, ResearchCtx, ResearchResult, AttributionInput, AttributionScore, SettleTools } from "./types.js";
+import type { SearchFn } from "../search.js";
 import { RESEARCH_SYSTEM, ATTRIBUTION_SYSTEM, SETTLE_SYSTEM, wrapUntrusted } from "./prompts.js";
 
 /** OpenAI-compatible provider (Chat Completions + function calling). No built-in web search: it reads the library and any URL it is given/knows. */
-export function openaiLLM(o: { apiKey: string; model: string; baseUrl?: string; fetch?: typeof fetch }): LLM {
+export function openaiLLM(o: { apiKey: string; model: string; baseUrl?: string; fetch?: typeof fetch; search?: SearchFn }): LLM {
   const f = o.fetch ?? fetch;
   const base = o.baseUrl ?? "https://api.openai.com/v1";
 
@@ -18,13 +19,17 @@ export function openaiLLM(o: { apiKey: string; model: string; baseUrl?: string; 
   }
   const fn = (name: string, description: string, parameters: object) => ({ type: "function", function: { name, description, parameters } });
 
-  async function loop(system: string, user: string, tools: object[], handle: (name: string, args: any) => Promise<string | { done: unknown }>, maxTurns = 12) {
+  async function loop(system: string, user: string, tools: object[], handle: (name: string, args: any) => Promise<string | { done: unknown }>, maxTurns = 12, nudge?: string) {
+    let nudged = false;
     const messages: any[] = [{ role: "system", content: system }, { role: "user", content: user }];
     for (let t = 0; t < maxTurns; t++) {
       const c = await chat({ messages, tools });
       const m = c.message;
       messages.push(m);
-      if (!m.tool_calls?.length) return { text: m.content as string };
+      if (!m.tool_calls?.length) {
+        if (nudge && !nudged) { nudged = true; messages.push({ role: "user", content: nudge }); continue; }
+        return { text: m.content as string };
+      }
       for (const tc of m.tool_calls) {
         let out: string | { done: unknown };
         try { out = await handle(tc.function.name, JSON.parse(tc.function.arguments || "{}")); } catch (e) { out = `error: ${(e as Error).message}`; }
@@ -46,6 +51,7 @@ export function openaiLLM(o: { apiKey: string; model: string; baseUrl?: string; 
         `${RESEARCH_SYSTEM}\n\nFootnote library:\n${library}`,
         question,
         [
+          ...(o.search ? [fn("web_search", "Search the web; returns titles, URLs, snippets", { type: "object", properties: { query: { type: "string" } }, required: ["query"] })] : []),
           fn("fetch_url", "Fetch a page and return sanitized visible text", { type: "object", properties: { url: { type: "string" } }, required: ["url"] }),
           fn("submit_answer", "Submit the final cited answer", {
             type: "object",
@@ -54,6 +60,7 @@ export function openaiLLM(o: { apiKey: string; model: string; baseUrl?: string; 
           }),
         ],
         async (name, args) => {
+          if (name === "web_search" && o.search) { ctx.log("researching", `Searching the web: ${String(args.query).slice(0, 80)}`); return o.search(String(args.query)); }
           if (name === "fetch_url") {
             const p = await ctx.fetchPage(String(args.url));
             ctx.log("researching", `Read ${p.title || p.url}`);
@@ -61,7 +68,9 @@ export function openaiLLM(o: { apiKey: string; model: string; baseUrl?: string; 
           }
           if (name === "submit_answer") return { done: { answerMarkdown: args.answer_markdown, sources: args.sources } };
           return "unknown tool";
-        }
+        },
+        12,
+        "You have not submitted yet. Call submit_answer now with the cited answer and the sources you used."
       );
       if (!("done" in r) || !r.done) throw new Error("research agent did not submit an answer");
       return r.done as ResearchResult;

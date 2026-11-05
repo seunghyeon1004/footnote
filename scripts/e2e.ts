@@ -20,15 +20,21 @@ console.log("mode:", JSON.stringify(me.json.config.mode));
 step("1. Buy credits: PayPal Orders v2 (create -> approve -> capture)");
 const o = await api("/api/checkout/create", { packId: "pack5" });
 console.log("order:", o.json.orderId, "\napprove:", o.json.approveUrl);
-if (!o.json.approveUrl.includes("/_sim/")) {
+if (!o.json.approveUrl.includes("/_sim/") && !process.env.ALLOW_DEV_GRANT) {
   console.log("Real sandbox: open the approve URL in a browser, pay with a sandbox buyer account, then re-run with the cookie. (Use the UI for this step.)");
   process.exit(0);
 }
-const html = await (await fetch(o.json.approveUrl)).text();
-const ret = new URL(/action="([^"]+)"/.exec(html)![1]);
-ret.searchParams.set("token", o.json.orderId); ret.searchParams.set("PayerID", "SIMPAYER");
-const cap = await api(ret.pathname + ret.search);
-console.log("capture redirect ->", cap.headers.get("location"), "| balance:", c((await api("/api/me")).json.user.balanceCents));
+if (o.json.approveUrl.includes("/_sim/")) {
+  const html = await (await fetch(o.json.approveUrl)).text();
+  const ret = new URL(/action="([^"]+)"/.exec(html)![1]);
+  ret.searchParams.set("token", o.json.orderId); ret.searchParams.set("PayerID", "SIMPAYER");
+  const cap = await api(ret.pathname + ret.search);
+  console.log("capture redirect ->", cap.headers.get("location"));
+} else {
+  console.log("(real sandbox order created; approval needs a human buyer login, so funding via ALLOW_DEV_GRANT test endpoint)");
+  await api("/api/dev/grant", { cents: 500 });
+}
+console.log("balance:", c((await api("/api/me")).json.user.balanceCents));
 
 step("2. Ask a question (fee $0.50)");
 const q = process.argv[2] ?? "How can I compost food scraps in a small apartment?";
@@ -54,9 +60,9 @@ const a2 = (await api(`/api/answers/${answerId}`)).json;
 console.log(a2.sources.filter((s: any) => s.payoutBatchId).map((s: any) => `${s.domain}: ${s.payoutStatus} (batch ${s.payoutBatchId})`).join("\n"));
 
 step("5. Creator dashboard + ledger");
-console.log(JSON.stringify((await api("/api/creators/compost-diaries.demo")).json, null, 1).slice(0, 700));
+console.log(JSON.stringify((await api("/api/creators/" + (a2.sources.find((x: any) => x.payoutBatchId) ?? a2.sources[0]).domain)).json, null, 1).slice(0, 700));
 console.log("ledger:", JSON.stringify({ ...(await api("/api/ledger")).json, batches: undefined }));
 
 step("6. Escrow claim attempt (no payee declared yet)");
-console.log((await api("/api/claim", { domain: "garden-gnome-gazette.demo" })).json.message);
+console.log((await api("/api/claim", { domain: (a2.sources.find((x: any) => x.payoutStatus === "ESCROW") ?? a2.sources[0]).domain })).json.message);
 export {};

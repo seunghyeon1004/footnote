@@ -1,0 +1,27 @@
+# Render Blueprint: one-click hosted demo. https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: footnote
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      # PUBLIC_URL defaults to Render's RENDER_EXTERNAL_URL automatically.
+      - key: PAYPAL_CLIENT_ID        # PayPal *sandbox* app credentials
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID       # optional: webhook -> https://<service>.onrender.com/api/webhooks/paypal
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: MIN_PAYOUT_CENTS        # low so one answer visibly pays out in the demo
+        value: 10
+      - key: WELCOME_CREDITS_CENTS   # judges can try it without a PayPal buyer login
+        value: 150
+      - key: DAILY_ANSWER_CAP        # protects the demo's LLM budget
+        value: 150
