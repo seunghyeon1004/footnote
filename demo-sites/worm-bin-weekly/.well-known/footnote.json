@@ -3,5 +3,6 @@
   "name": "Worm Bin Weekly",
   "paypal": {
     "email": "worm-bin-weekly@footnote-demo.test"
-  }
+  },
+  "near": "footnote-demo-worm.testnet"
 }

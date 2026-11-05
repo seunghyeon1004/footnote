@@ -1,10 +1,28 @@
 import "node:process";
 
+export interface NearConfig {
+  /** "off" = NEAR rail not offered; "live" = real chain via near-api-js; "simulator" = offline stand-in (labelled). */
+  mode: "off" | "live" | "simulator";
+  network: "testnet" | "mainnet";
+  rpcUrl: string;
+  accountId: string;
+  privateKey: string;
+  receiptContract: string;
+  /** Mainnet sends real money: refused unless NEAR_ALLOW_MAINNET=1. */
+  allowMainnet: boolean;
+  minPayoutCents: number;
+  maxPayoutCents: number;
+  /** "auto": pay in NEAR when the creator declared a NEAR account and the rail is on. "paypal": never use NEAR. */
+  rail: "auto" | "paypal";
+  fixedUsdRate: number | null;
+}
+
 export interface Config {
   port: number;
   publicUrl: string;
   dbPath: string;
   paypal: { clientId: string; clientSecret: string; baseUrl: string; webhookId: string; simulator: boolean };
+  near: NearConfig;
   llm: { provider: "anthropic" | "openai" | "gemini" | "vultr" | "fixture"; model: string; webSearch: boolean; fallbacks: boolean };
   minPayoutCents: number;
   minFeeCents: number;
@@ -49,9 +67,27 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     : provider === "vultr" ? env.FOOTNOTE_MODEL || env.VULTR_MODEL || "llama-3.3-70b-instruct-fp8"
     : provider === "gemini" ? env.FOOTNOTE_MODEL || "gemini-2.5-flash"
     : "fixture";
+  const network: "testnet" | "mainnet" = env.NEAR_NETWORK === "mainnet" ? "mainnet" : "testnet";
+  const hasNear = !!(env.NEAR_ACCOUNT_ID && env.NEAR_PRIVATE_KEY);
+  const nearMode: NearConfig["mode"] = env.NEAR_SIMULATOR === "1" ? "simulator" : hasNear ? "live" : "off";
+  const fixedRate = Number(env.NEAR_USD_RATE);
+  const near: NearConfig = {
+    mode: nearMode,
+    network,
+    rpcUrl: env.NEAR_RPC_URL || (network === "mainnet" ? "https://free.rpc.fastnear.com" : "https://test.rpc.fastnear.com"),
+    accountId: env.NEAR_ACCOUNT_ID || "",
+    privateKey: env.NEAR_PRIVATE_KEY || "",
+    receiptContract: env.NEAR_RECEIPT_CONTRACT || "",
+    allowMainnet: env.NEAR_ALLOW_MAINNET === "1",
+    minPayoutCents: num(env.NEAR_MIN_PAYOUT_CENTS, 10),
+    maxPayoutCents: num(env.NEAR_MAX_PAYOUT_CENTS, 500),
+    rail: env.FOOTNOTE_RAIL === "paypal" ? "paypal" : "auto",
+    fixedUsdRate: Number.isFinite(fixedRate) && fixedRate > 0 ? fixedRate : null,
+  };
   return {
     port,
     publicUrl,
+    near,
     dbPath: env.DB_PATH || "data/footnote.db",
     paypal: {
       clientId: env.PAYPAL_CLIENT_ID || "sim-client",

@@ -11,15 +11,18 @@ export interface AccrualInput {
   domain: string;
   cents: number;
   payee: Payee;
+  /** Payout rail chosen by the caller. "near" pays `payee.near` in NEAR; default "paypal". */
+  rail?: "paypal" | "near";
 }
 
-/** Record what a source earned. Email payee -> ACCRUED; paypal.me only -> LINK_ONLY; nobody -> ESCROW. */
+/** Record what a source earned. Email payee -> ACCRUED; paypal.me only -> LINK_ONLY; nobody -> ESCROW. NEAR rail: declared account -> ACCRUED. */
 export function recordAccrual(db: DB, a: AccrualInput): PayoutStatus {
-  const status: PayoutStatus = a.payee.email ? "ACCRUED" : a.payee.paypalMe ? "LINK_ONLY" : "ESCROW";
+  const near = a.rail === "near" && a.payee.near ? a.payee.near : null;
+  const status: PayoutStatus = near || a.payee.email ? "ACCRUED" : a.payee.paypalMe ? "LINK_ONLY" : "ESCROW";
   const t = now();
   db.prepare(
-    `INSERT INTO accruals(source_id,answer_id,domain,email,cents,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)`
-  ).run(a.sourceId, a.answerId, a.domain, a.payee.email, a.cents, status, t, t);
+    `INSERT INTO accruals(source_id,answer_id,domain,email,cents,status,rail,near_account,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)`
+  ).run(a.sourceId, a.answerId, a.domain, near ? null : a.payee.email, a.cents, status, near ? "near" : "paypal", near, t, t);
   return status;
 }
 
@@ -33,7 +36,7 @@ export interface SettleablePayee {
 /** Aggregate ACCRUED micro-royalties per payee email; only those at/above `minCents` are payable now. */
 export function listSettleable(db: DB, minCents: number): SettleablePayee[] {
   const rows = db
-    .prepare(`SELECT id,email,domain,cents FROM accruals WHERE status='ACCRUED' AND email IS NOT NULL ORDER BY id`)
+    .prepare(`SELECT id,email,domain,cents FROM accruals WHERE status='ACCRUED' AND rail='paypal' AND email IS NOT NULL ORDER BY id`)
     .all() as { id: number; email: string; domain: string; cents: number }[];
   const by = new Map<string, SettleablePayee>();
   for (const r of rows) {

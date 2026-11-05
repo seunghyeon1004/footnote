@@ -39,9 +39,20 @@ export function openDb(file: string): DB {
   CREATE TABLE IF NOT EXISTS payout_items (
     sender_item_id TEXT PRIMARY KEY, batch_id TEXT NOT NULL, payout_item_id TEXT, email TEXT NOT NULL, cents INTEGER NOT NULL,
     status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+  -- NEAR payout rail: one row per native-NEAR transfer; accruals.item_sid points here when accruals.rail='near'
+  CREATE TABLE IF NOT EXISTS near_payouts (
+    id TEXT PRIMARY KEY, near_account TEXT NOT NULL, cents INTEGER NOT NULL, yocto TEXT NOT NULL, usd_per_near REAL NOT NULL,
+    rate_source TEXT NOT NULL, network TEXT NOT NULL, status TEXT NOT NULL, tx_hash TEXT, error TEXT,
+    receipt_status TEXT NOT NULL DEFAULT 'NONE', receipt_tx TEXT, split_hash TEXT, answer_ids TEXT, settled_by TEXT NOT NULL,
+    created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
   CREATE TABLE IF NOT EXISTS webhook_events (
     id TEXT PRIMARY KEY, type TEXT NOT NULL, verified INTEGER NOT NULL, received_at TEXT NOT NULL);
   `);
+  // Additive migrations for databases created before the NEAR rail existed.
+  const cols = (t: string) => (db.pragma(`table_info(${t})`) as { name: string }[]).map((c) => c.name);
+  if (!cols("accruals").includes("rail")) db.exec(`ALTER TABLE accruals ADD COLUMN rail TEXT NOT NULL DEFAULT 'paypal'`);
+  if (!cols("accruals").includes("near_account")) db.exec(`ALTER TABLE accruals ADD COLUMN near_account TEXT`);
+  if (!cols("creators").includes("near_account")) db.exec(`ALTER TABLE creators ADD COLUMN near_account TEXT`);
   return db;
 }
 

@@ -17,5 +17,10 @@ export const SETTLE_SYSTEM = `You are Footnote's settlement agent. You pay creat
 
 Procedure: call list_settleable_payees, then call create_payout_batch ONCE with every listed payee (email and the exact amount_cents shown). Payees below the minimum are not listed and must not be paid. Never invent a payee or change an amount; the ledger will reject it. After the batch is created, reply with one short sentence summarising what you paid. If nothing is listed, say so and stop.`;
 
+/** Extra instructions when the NEAR payout rail is on. Appended to SETTLE_SYSTEM. */
+export const SETTLE_NEAR_ADDENDUM = `
+
+NEAR rail: some creators declared a NEAR account instead of a PayPal email. Call list_settleable_near_payees; if it lists anyone, call create_near_payouts ONCE with every listed account and the exact amount_cents shown. Each item is paid with a native NEAR transfer at the live USD price, then an on-chain royalty receipt is logged. Use the NEAR tools only for NEAR accounts and the PayPal tools only for emails; never mix them. The ledger rejects invented payees and changed amounts. Mention both rails in your one-sentence summary.`;
+
 export const wrapUntrusted = (url: string, title: string, text: string, max = 6000) =>
   `<untrusted_page url="${url}" title="${title.replace(/"/g, "'")}">\n${text.slice(0, max)}\n</untrusted_page>`;

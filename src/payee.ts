@@ -2,6 +2,7 @@ import YAML from "yaml";
 import { htmlToCleanText } from "./sanitize.js";
 import type { Fetcher } from "./fetcher.js";
 import { normalizeDomain } from "./attribution.js";
+import { parseNearAccount } from "./near/account.js";
 
 export type PayeeMethod = "meta_tag" | "footnote_json" | "funding_yml" | "paypal_me" | "none";
 
@@ -11,6 +12,8 @@ export interface Payee {
   email: string | null;
   paypalMe: string | null;
   evidenceUrl: string | null;
+  /** NEAR account declared by the creator (`footnote:near` meta tag or `"near"` in footnote.json). Only read when the NEAR rail is on. */
+  near?: string | null;
 }
 
 export interface Site {
@@ -46,14 +49,15 @@ async function tryFetch(f: Fetcher, url: string) {
 }
 
 /** Parse /.well-known/footnote.json (see docs/footnote-spec.md). */
-export function parseFootnoteJson(body: string): { email: string | null; paypalMe: string | null; name?: string } | null {
+export function parseFootnoteJson(body: string): { email: string | null; paypalMe: string | null; near: string | null; name?: string } | null {
   try {
     const j = JSON.parse(body);
     if (!j || typeof j !== "object" || ![1, "1"].includes(j.version)) return null;
     const email = isEmail(j?.paypal?.email) ? j.paypal.email.trim().toLowerCase() : null;
     const me = typeof j?.paypal?.me === "string" ? j.paypal.me.match(/([A-Za-z0-9]{1,20})\/?$/)?.[1] ?? null : null;
-    if (!email && !me) return null;
-    return { email, paypalMe: me, name: typeof j.name === "string" ? j.name.slice(0, 80) : undefined };
+    const near = parseNearAccount(typeof j?.near === "string" ? j.near : j?.near?.account);
+    if (!email && !me && !near) return null;
+    return { email, paypalMe: me, near, name: typeof j.name === "string" ? j.name.slice(0, 80) : undefined };
   } catch {
     return null;
   }
@@ -98,20 +102,35 @@ function githubFundingUrls(pageUrl: string): string[] {
  *   1. <meta name="footnote:paypal">  2. /.well-known/footnote.json  3. GitHub FUNDING.yml
  *   4. paypal.me link on the page    5. none -> escrow
  */
-export async function resolvePayee(pageUrl: string, site: Site, fetcher: Fetcher, html?: string): Promise<Payee> {
+export async function resolvePayee(pageUrl: string, site: Site, fetcher: Fetcher, html?: string, opts: { near?: boolean } = {}): Promise<Payee> {
   let page = html;
   if (page === undefined) page = (await tryFetch(fetcher, pageUrl))?.body;
   const parsed = page ? htmlToCleanText(page) : null;
+  const wantNear = !!opts.near;
+  // NEAR declarations (opt-in so behaviour is byte-for-byte unchanged when the NEAR rail is off).
+  let nearAcct: string | null = wantNear ? parseNearAccount(parsed?.metaTags["footnote:near"]) : null;
+  let wk: Awaited<ReturnType<typeof tryFetch>> | undefined;
+  const wellKnown = async () => (wk === undefined ? (wk = await tryFetch(fetcher, new URL(".well-known/footnote.json", site.root).toString())) : wk);
+  const nearFromWk = async () => {
+    if (!wantNear || nearAcct) return;
+    const r = await wellKnown();
+    const j = r && parseFootnoteJson(r.body);
+    if (j?.near) nearAcct = j.near;
+  };
 
   const metaEmail = parsed?.metaTags["footnote:paypal"];
   if (isEmail(metaEmail)) {
-    return { method: "meta_tag", label: '<meta name="footnote:paypal">', email: metaEmail.trim().toLowerCase(), paypalMe: null, evidenceUrl: pageUrl };
+    await nearFromWk();
+    return { method: "meta_tag", label: '<meta name="footnote:paypal">', email: metaEmail.trim().toLowerCase(), paypalMe: null, evidenceUrl: pageUrl, near: nearAcct };
+  }
+  if (nearAcct) {
+    return { method: "meta_tag", label: '<meta name="footnote:near">', email: null, paypalMe: null, evidenceUrl: pageUrl, near: nearAcct };
   }
 
-  const wk = await tryFetch(fetcher, new URL(".well-known/footnote.json", site.root).toString());
-  if (wk) {
-    const j = parseFootnoteJson(wk.body);
-    if (j) return { method: "footnote_json", label: "/.well-known/footnote.json", email: j.email, paypalMe: j.paypalMe, evidenceUrl: wk.url };
+  const wkRes = await wellKnown();
+  if (wkRes) {
+    const j = parseFootnoteJson(wkRes.body);
+    if (j && (j.email || j.paypalMe || (wantNear && j.near))) return { method: "footnote_json", label: "/.well-known/footnote.json", email: j.email, paypalMe: j.paypalMe, evidenceUrl: wkRes.url, near: wantNear ? j.near : null };
   }
 
   for (const url of [...githubFundingUrls(pageUrl), new URL(".github/FUNDING.yml", site.root).toString()]) {

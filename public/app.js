@@ -156,6 +156,7 @@ function renderHeader() {
     const llm = { provider: mode.llm, model: mode.llmModel, fixture: mode.llm === "fixture" };
     const fixture = isFixture(llm) || (state.route?.name === "ask" && isFixture(state.answer?.llm));
     dom.modes.innerHTML = `<span class="mode-tag"><span class="mode-dot" aria-hidden="true"></span>PayPal ${escapeHTML(mode.paypal)}</span>
+      ${mode.near && mode.near !== "off" ? `<span class="mode-tag"><span class="mode-dot" aria-hidden="true"></span>NEAR ${escapeHTML(mode.near)}</span>` : ""}
       <span class="mode-tag">${escapeHTML(modelLabel(llm))}</span>
       ${fixture ? '<span class="mode-tag fixture-tag">FIXTURE MODE</span>' : ""}`;
   } else {
@@ -519,13 +520,25 @@ function sourceRow(source) {
     <div class="source-badges">${methodBadge(source.payee)}${statusPill(source.payoutStatus)}</div>
     ${explanation ? `<p class="payout-explanation">${escapeHTML(explanation)}</p>` : ""}
     ${flagged ? `<details class="source-injection"><summary>Prompt injection stripped</summary>${flags.length ? flags.map(flag => `<blockquote>${escapeHTML(flag.snippet || "No snippet supplied.")}</blockquote>`).join("") : '<blockquote>The source contained instructions that were removed before attribution. No snippet supplied.</blockquote>'}</details>` : ""}
-    ${source.payoutBatchId ? `<p class="source-batch">Batch ${escapeHTML(source.payoutBatchId)}${source.payoutItemId ? ` / Item ${escapeHTML(source.payoutItemId)}` : ""}</p>` : ""}
+    ${nearLine(source)}
+    ${source.payoutRail !== "near" && source.payoutBatchId ? `<p class="source-batch">Batch ${escapeHTML(source.payoutBatchId)}${source.payoutItemId ? ` / Item ${escapeHTML(source.payoutItemId)}` : ""}</p>` : ""}
   </article>`;
 }
 
+/** NEAR rail detail: account, amount, payout tx and the on-chain royalty receipt (links only for real chain hashes). */
+function nearLine(source) {
+  const n = source.near;
+  if (!n) return source.payee && source.payee.near && source.payoutRail !== "near" ? `<p class="source-batch">Declares NEAR account ${escapeHTML(source.payee.near)}</p>` : "";
+  const amount = n.yoctoNear ? `${(Number(BigInt(n.yoctoNear) / 10n ** 20n) / 1e4).toFixed(4)} NEAR` : "";
+  const link = (url, text) => url ? `<a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(text)}</a>` : escapeHTML(text);
+  const short = (h) => h ? `${h.slice(0, 8)}…` : "";
+  return `<p class="source-batch">Paid in NEAR${n.network ? ` ${escapeHTML(n.network)}` : ""} to ${escapeHTML(n.account)}${amount ? ` · ${escapeHTML(amount)}` : ""}${n.txHash ? ` · tx ${link(n.txUrl, short(n.txHash))}` : ""}${n.receiptTx ? ` · on-chain receipt ${link(n.receiptUrl, short(n.receiptTx))}` : n.receiptStatus === "FAILED" ? " · receipt log pending" : ""}</p>`;
+}
+
 function settlementLabel(value) {
-  if (value === "agent") return "Settled by Claude agent via PayPal Payouts";
-  if (value === "deterministic") return "Settled by deterministic rules via PayPal Payouts";
+  const rails = state.config?.mode?.near && state.config.mode.near !== "off" ? "PayPal Payouts / NEAR" : "PayPal Payouts";
+  if (value === "agent") return `Settled by Claude agent via ${rails}`;
+  if (value === "deterministic") return `Settled by deterministic rules via ${rails}`;
   return "Settlement not yet recorded";
 }
 

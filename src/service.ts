@@ -9,6 +9,10 @@ import { allocate, type ScoredSource } from "./attribution.js";
 import { resolvePayee, siteOf, type Payee, NONE } from "./payee.js";
 import { recordAccrual, listSettleable, createPayoutBatch, SettlementError, type PayoutStatus, type BatchResult } from "./ledger.js";
 import { DEMO_SITES } from "./demo.js";
+import type { NearClient } from "./near/client.js";
+import { explorerBase } from "./near/client.js";
+import type { RateProvider } from "./near/rate.js";
+import { createNearPayouts, listSettleableNear, retryPendingReceipts, type NearDeps, type NearPayoutResult } from "./near/settle.js";
 
 export interface Ctx {
   cfg: Config;
@@ -17,7 +21,15 @@ export interface Ctx {
   llm: LLM;
   fetcher: Fetcher;
   settleLock: Promise<unknown>;
+  /** NEAR payout rail (absent = PayPal only). */
+  near?: { client: NearClient; rate: RateProvider } | null;
 }
+
+export const nearDepsOf = (ctx: Ctx): NearDeps | null =>
+  ctx.near
+    ? { db: ctx.db, near: ctx.near.client, rate: ctx.near.rate, minPayoutCents: ctx.cfg.near.minPayoutCents, maxPayoutCents: ctx.cfg.near.maxPayoutCents, allowMainnet: ctx.cfg.near.allowMainnet }
+    : null;
+const railFor = (ctx: Ctx, payee: Payee): "near" | "paypal" => (ctx.near && payee.near && ctx.cfg.near.rail === "auto" ? "near" : "paypal");
 
 const MAX_SOURCES = 8;
 
@@ -117,13 +129,13 @@ export async function runAnswer(ctx: Ctx, answerId: string): Promise<void> {
       const site = siteOf(s.url, cfg.publicUrl);
       let payee: Payee | null = null;
       if (!al.dropped && pg) {
-        payee = payees.get(site.key) ?? (await resolvePayee(pg.url, site, ctx.fetcher, pg.html).catch(() => NONE));
+        payee = payees.get(site.key) ?? (await resolvePayee(pg.url, site, ctx.fetcher, pg.html, { near: !!ctx.near }).catch(() => NONE));
         payees.set(site.key, payee);
-        ev("resolving", `${site.key}: ${payee.method === "none" ? "no payee declared, funds go to escrow" : `payee via ${payee.label}`}`);
+        ev("resolving", `${site.key}: ${payee.method === "none" ? "no payee declared, funds go to escrow" : `payee via ${payee.label}`}${payee.near ? ` (NEAR account ${payee.near})` : ""}`);
         db.prepare(
-          `INSERT INTO creators(domain,label,root,payee_method,email,paypal_me,evidence_url,updated_at) VALUES (?,?,?,?,?,?,?,?)
-           ON CONFLICT(domain) DO UPDATE SET label=excluded.label, root=excluded.root, payee_method=excluded.payee_method, email=excluded.email, paypal_me=excluded.paypal_me, evidence_url=excluded.evidence_url, updated_at=excluded.updated_at`
-        ).run(site.key, pg.title || s.title || site.key, site.root, payee.method, payee.email, payee.paypalMe, payee.evidenceUrl, now());
+          `INSERT INTO creators(domain,label,root,payee_method,email,paypal_me,evidence_url,near_account,updated_at) VALUES (?,?,?,?,?,?,?,?,?)
+           ON CONFLICT(domain) DO UPDATE SET label=excluded.label, root=excluded.root, payee_method=excluded.payee_method, email=excluded.email, paypal_me=excluded.paypal_me, evidence_url=excluded.evidence_url, near_account=excluded.near_account, updated_at=excluded.updated_at`
+        ).run(site.key, pg.title || s.title || site.key, site.root, payee.method, payee.email, payee.paypalMe, payee.evidenceUrl, payee.near ?? null, now());
       }
       const info = insert.run(answerId, s.n, s.url, pg?.title || s.title, site.key, sc.score, sc.justification, al.sharePct, al.shareCents, al.dropped ? 1 : 0, al.dropReason, JSON.stringify(pg?.flags ?? []), payee ? JSON.stringify(payee) : null);
       srcIds.set(s.n, Number(info.lastInsertRowid));
@@ -139,11 +151,12 @@ export async function runAnswer(ctx: Ctx, answerId: string): Promise<void> {
         const s = cited.find((q) => q.n === x.n)!;
         const site = siteOf(s.url, cfg.publicUrl);
         const payee = payees.get(site.key)!;
-        const st = recordAccrual(db, { sourceId: srcIds.get(x.n)!, answerId, domain: site.key, cents: x.shareCents, payee });
-        ev("paying", `${site.key}: ${x.shareCents}c ${st === "ACCRUED" ? "accrued toward payout" : st === "ESCROW" ? "held in escrow" : "held (paypal.me link only)"}`);
+        const rail = railFor(ctx, payee);
+        const st = recordAccrual(db, { sourceId: srcIds.get(x.n)!, answerId, domain: site.key, cents: x.shareCents, payee, rail });
+        ev("paying", `${site.key}: ${x.shareCents}c ${st === "ACCRUED" ? (rail === "near" ? `accrued toward a NEAR payout to ${payee.near}` : "accrued toward payout") : st === "ESCROW" ? "held in escrow" : "held (paypal.me link only)"}`);
       }
       const res = await settleNow(ctx, (m) => ev("paying", m));
-      if (!res.batches.length) ev("paying", `No payee has reached the ${cfg.minPayoutCents}c minimum yet; royalties keep accruing`);
+      if (!res.batches.length && !res.near.length) ev("paying", `No payee has reached the payout minimum yet; royalties keep accruing`);
     }
     setStatus(db, answerId, "done");
     ev("done", "Royalty receipt ready");
@@ -156,18 +169,25 @@ export async function runAnswer(ctx: Ctx, answerId: string): Promise<void> {
   }
 }
 
-/** Pay everyone at/above the minimum. The LLM agent drives the PayPal tools when a real model is configured. */
-export async function settleNow(ctx: Ctx, log: (m: string) => void = () => {}): Promise<{ settledBy: "agent" | "deterministic" | null; batches: BatchResult[]; message: string }> {
+/** Pay everyone at/above the minimum, on each payee's rail. The LLM agent drives the payout tools when a real model is configured. */
+export async function settleNow(ctx: Ctx, log: (m: string) => void = () => {}): Promise<{ settledBy: "agent" | "deterministic" | null; batches: BatchResult[]; near: NearPayoutResult[]; message: string }> {
   const run = async () => {
     const { db, cfg, llm } = ctx;
     const deps = { db, paypal: ctx.paypal, minPayoutCents: cfg.minPayoutCents, maxBatchCents: cfg.maxBatchCents };
-    if (!listSettleable(db, cfg.minPayoutCents).length) return { settledBy: null, batches: [] as BatchResult[], message: "Nothing to settle: no payee has reached the minimum payout." };
+    const nd = nearDepsOf(ctx);
+    const nearDue = () => (nd ? listSettleableNear(db, cfg.near.minPayoutCents) : []);
+    if (nd) await retryPendingReceipts(nd).catch(() => 0);
+    if (!listSettleable(db, cfg.minPayoutCents).length && !nearDue().length) return { settledBy: null, batches: [] as BatchResult[], near: [] as NearPayoutResult[], message: "Nothing to settle: no payee has reached the minimum payout." };
     const batches: BatchResult[] = [];
+    const nearResults: NearPayoutResult[] = [];
+    const logNear = (r: NearPayoutResult[], by: string) => {
+      for (const x of r) log(x.status === "SUCCESS" ? `${by} paid ${x.account} on NEAR ${nd!.near.network} (${x.cents}c = ${(Number(x.yocto) / 1e24).toFixed(4)} NEAR), tx ${x.txHash}${x.receiptTx ? `, on-chain receipt ${x.receiptTx}` : x.receiptStatus === "FAILED" ? ", receipt log pending retry" : ""}` : `NEAR payout to ${x.account} not sent: ${x.error}`);
+    };
     let settledBy: "agent" | "deterministic" = "deterministic";
     if (!llm.fixture) {
       settledBy = "agent";
       try {
-        log(`Settlement agent started: ${llm.model} drives the PayPal Payouts tools`);
+        log(`Settlement agent started: ${llm.model} drives the payout tools${nd ? " (PayPal Payouts + NEAR transfers)" : " (PayPal Payouts)"}`);
         await llm.settle({
           minPayoutCents: cfg.minPayoutCents,
           listSettleable: () => listSettleable(db, cfg.minPayoutCents),
@@ -177,6 +197,16 @@ export async function settleNow(ctx: Ctx, log: (m: string) => void = () => {}): 
             log(`Agent created PayPal payout batch ${b.batchId} (${b.itemCount} payee${b.itemCount > 1 ? "s" : ""}, ${b.totalCents}c)`);
             return b;
           },
+          ...(nd ? {
+            listSettleableNear: () => nearDue(),
+            createNearPayouts: async (items: { account: string; cents: number }[]) => {
+              const r = await createNearPayouts(nd, items, "agent");
+              nearResults.push(...r);
+              logNear(r, "Agent");
+              return r;
+            },
+            nearMinPayoutCents: cfg.near.minPayoutCents,
+          } : {}),
           log,
         });
       } catch (e) {
@@ -191,7 +221,19 @@ export async function settleNow(ctx: Ctx, log: (m: string) => void = () => {}): 
       log(`Created PayPal payout batch ${b.batchId} (${b.itemCount} payee${b.itemCount > 1 ? "s" : ""}, ${b.totalCents}c)`);
       if (!batches.slice(0, -1).length) settledBy = "deterministic";
     }
-    return { settledBy, batches, message: `Paid ${batches.reduce((s, b) => s + b.itemCount, 0)} payee(s) in ${batches.length} batch(es).` };
+    const nrest = nearDue();
+    if (nd && nrest.length) {
+      if (settledBy === "agent") log("Agent left NEAR payees unpaid; deterministic settlement finishes the job");
+      try {
+        const r = await createNearPayouts(nd, nrest.map((p) => ({ account: p.account, cents: p.cents })), "deterministic");
+        nearResults.push(...r);
+        logNear(r, "Ledger");
+      } catch (e) {
+        log(`NEAR settlement did not run: ${(e as Error).message}. Royalties stay accrued and are retried on the next settlement.`);
+      }
+    }
+    const paidNear = nearResults.filter((r) => r.status === "SUCCESS").length;
+    return { settledBy, batches, near: nearResults, message: `Paid ${batches.reduce((s, b) => s + b.itemCount, 0)} payee(s) via PayPal in ${batches.length} batch(es)${nd ? ` and ${paidNear} payee(s) via NEAR` : ""}.` };
   };
   const next = ctx.settleLock.then(run, run);
   ctx.settleLock = next.catch(() => {});
@@ -209,8 +251,10 @@ export function answerView(ctx: Ctx, id: string, userId?: string) {
   const events = db.prepare(`SELECT t,stage,message FROM events WHERE answer_id=? ORDER BY id`).all(id);
   const rows = db
     .prepare(
-      `SELECT s.*, ac.status AS pstatus, i.payout_item_id AS payout_item_id, i.batch_id AS batch_id, ac.cents AS ac_cents
+      `SELECT s.*, ac.status AS pstatus, ac.rail AS rail, ac.near_account AS near_account, i.payout_item_id AS payout_item_id, i.batch_id AS batch_id, ac.cents AS ac_cents,
+              np.id AS near_payout_id, np.tx_hash AS near_tx, np.receipt_tx AS near_receipt_tx, np.receipt_status AS near_receipt_status, np.yocto AS near_yocto, np.network AS near_network, np.usd_per_near AS near_rate
        FROM sources s LEFT JOIN accruals ac ON ac.source_id=s.id LEFT JOIN payout_items i ON i.sender_item_id=ac.item_sid
+       LEFT JOIN near_payouts np ON np.id=ac.item_sid AND ac.rail='near'
        WHERE s.answer_id=? ORDER BY s.n`
     )
     .all(id) as any[];
@@ -220,9 +264,21 @@ export function answerView(ctx: Ctx, id: string, userId?: string) {
       n: r.n, url: r.url, title: r.title, domain: r.domain, rawScore: r.raw_score, justification: r.justification,
       sharePct: r.share_pct, shareCents: r.share_cents, dropped: !!r.dropped, dropReason: r.drop_reason,
       flagged: JSON.parse(r.flags_json).some((f: any) => f.kind === "prompt_injection"), flags: JSON.parse(r.flags_json),
-      payee: payee ? { method: payee.method, label: payee.label, email: payee.email, paypalMe: payee.paypalMe, evidenceUrl: payee.evidenceUrl } : null,
+      payee: payee ? { method: payee.method, label: payee.label, email: payee.email, paypalMe: payee.paypalMe, near: payee.near ?? null, evidenceUrl: payee.evidenceUrl } : null,
       payoutStatus: (r.pstatus as PayoutStatus | null) ?? null,
-      payoutBatchId: r.batch_id ?? null, payoutItemId: r.payout_item_id ?? null,
+      payoutRail: (r.rail as "paypal" | "near" | null) ?? null,
+      payoutBatchId: r.batch_id ?? r.near_payout_id ?? null, payoutItemId: r.payout_item_id ?? null,
+      near: r.rail === "near" ? {
+        account: r.near_account as string,
+        txHash: (r.near_tx as string | null) ?? null,
+        txUrl: r.near_tx && !String(r.near_tx).startsWith("sim_") ? `${explorerBase(r.near_network)}/txns/${r.near_tx}` : null,
+        receiptTx: (r.near_receipt_tx as string | null) ?? null,
+        receiptUrl: r.near_receipt_tx && !String(r.near_receipt_tx).startsWith("sim_") ? `${explorerBase(r.near_network)}/txns/${r.near_receipt_tx}` : null,
+        receiptStatus: (r.near_receipt_status as string | null) ?? null,
+        yoctoNear: (r.near_yocto as string | null) ?? null,
+        usdPerNear: (r.near_rate as number | null) ?? null,
+        network: (r.near_network as string | null) ?? ctx.near?.client.network ?? null,
+      } : null,
     };
   });
   const sum = (f: (s: (typeof sources)[number]) => boolean) => sources.filter(f).reduce((t, s) => t + s.shareCents, 0);
@@ -231,6 +287,9 @@ export function answerView(ctx: Ctx, id: string, userId?: string) {
   const batches = db
     .prepare(`SELECT DISTINCT b.batch_id AS batchId, b.status, b.settled_by AS settledBy FROM accruals ac JOIN payout_items i ON i.sender_item_id=ac.item_sid JOIN payout_batches b ON b.batch_id=i.batch_id WHERE ac.answer_id=?`)
     .all(id) as { batchId: string; status: string; settledBy: string }[];
+  const nearBatches = db
+    .prepare(`SELECT DISTINCT n.id AS id, n.status, n.settled_by AS settledBy FROM accruals ac JOIN near_payouts n ON n.id=ac.item_sid WHERE ac.answer_id=?`)
+    .all(id) as { id: string; status: string; settledBy: string }[];
   const bal = (ctx.db.prepare(`SELECT balance_cents FROM users WHERE id=?`).get(a.user_id) as any)?.balance_cents ?? 0;
   const done = a.status === "done";
   return {
@@ -238,7 +297,8 @@ export function answerView(ctx: Ctx, id: string, userId?: string) {
     answerMarkdown: a.answer_md, llm: a.llm_json ? JSON.parse(a.llm_json) : null, sources,
     receipt: done ? {
       totalCents: a.fee_cents, paidToSourcesCents: allocated - refundedAcc, refundedCents: a.fee_cents - allocated + refundedAcc,
-      settledBy: batches[0]?.settledBy ?? null, batches: batches.map((b) => ({ batchId: b.batchId, status: b.status })),
+      settledBy: batches[0]?.settledBy ?? nearBatches[0]?.settledBy ?? null, batches: batches.map((b) => ({ batchId: b.batchId, status: b.status })),
+      nearPayouts: nearBatches.map((b) => ({ id: b.id, status: b.status })),
     } : null,
     balanceCents: bal,
   };
@@ -264,8 +324,11 @@ export function creatorView(ctx: Ctx, domain: string) {
   const payouts = c.email
     ? db.prepare(`SELECT batch_id AS batchId, payout_item_id AS itemId, status, cents AS amountCents, created_at AS createdAt FROM payout_items WHERE email=? ORDER BY created_at DESC`).all(c.email)
     : [];
+  const nearPayouts = c.near_account
+    ? db.prepare(`SELECT id, status, cents AS amountCents, yocto, tx_hash AS txHash, receipt_tx AS receiptTx, network, created_at AS createdAt FROM near_payouts WHERE near_account=? ORDER BY created_at DESC`).all(c.near_account)
+    : [];
   return {
-    domain, label: c.label ?? domain, payeeMethod: c.payee_method, email: c.email, paypalMe: c.paypal_me,
+    domain, label: c.label ?? domain, payeeMethod: c.payee_method, email: c.email, paypalMe: c.paypal_me, nearAccount: c.near_account ?? null, nearPayouts,
     earnedCents: agg.earned, pendingCents: agg.pending, escrowCents: agg.escrow, claimable: agg.escrow > 0, answers, payouts,
   };
 }
@@ -278,14 +341,31 @@ export async function claimDomain(ctx: Ctx, domain: string) {
   const held = db.prepare(`SELECT COALESCE(SUM(cents),0) AS s FROM accruals WHERE domain=? AND status IN ('ESCROW','LINK_ONLY')`).get(domain) as { s: number };
   if (!held.s) return { ok: false, status: 200, message: `No escrowed royalties are waiting for ${domain}.` };
   const site = { key: domain, root: c.root as string };
-  const payee = await resolvePayee(c.root, site, ctx.fetcher).catch(() => NONE);
+  const payee = await resolvePayee(c.root, site, ctx.fetcher, undefined, { near: !!ctx.near }).catch(() => NONE);
   // Only proof of domain control counts for a claim: meta tag or /.well-known/footnote.json on the domain itself.
-  const verified = (payee.method === "meta_tag" || payee.method === "footnote_json") && payee.email;
+  const rail = railFor(ctx, payee);
+  const proven = payee.method === "meta_tag" || payee.method === "footnote_json";
+  const verified = proven && (rail === "near" ? !!payee.near : !!payee.email);
   if (!verified) {
-    return { ok: false, status: 200, message: `No payee declaration found on ${domain}. Add: <meta name="footnote:paypal" content="you@example.com"> to the site's home page (or publish /.well-known/footnote.json), then verify again.` };
+    return { ok: false, status: 200, message: `No payee declaration found on ${domain}. Add: <meta name="footnote:paypal" content="you@example.com">${ctx.near ? ' or <meta name="footnote:near" content="you.near">' : ""} to the site's home page (or publish /.well-known/footnote.json), then verify again.` };
+  }
+  if (rail === "near") {
+    db.transaction(() => {
+      db.prepare(`UPDATE creators SET payee_method=?, email=?, paypal_me=NULL, near_account=?, evidence_url=?, updated_at=? WHERE domain=?`).run(payee.method, payee.email, payee.near, payee.evidenceUrl, now(), domain);
+      db.prepare(`UPDATE accruals SET status='ACCRUED', email=NULL, rail='near', near_account=?, updated_at=? WHERE domain=? AND status IN ('ESCROW','LINK_ONLY')`).run(payee.near, now(), domain);
+    })();
+    const nd = nearDepsOf(ctx)!;
+    const mine = listSettleableNear(db, 1).find((p) => p.account === payee.near)!;
+    try {
+      const [r] = await createNearPayouts(nd, [{ account: mine.account, cents: mine.cents }], "deterministic", { ignoreMin: true });
+      if (r.status !== "SUCCESS") return { ok: false, status: 502, message: r.error ?? "NEAR payout failed" };
+      return { ok: true, status: 200, message: `Verified NEAR account ${payee.near} via ${payee.label}. Released ${mine.cents}c as NEAR (tx ${r.txHash}).`, verifiedEmail: null, releasedCents: mine.cents, payout: { batchId: r.id, status: r.status } };
+    } catch (e) {
+      return { ok: false, status: 502, message: (e as Error).message };
+    }
   }
   db.transaction(() => {
-    db.prepare(`UPDATE creators SET payee_method=?, email=?, paypal_me=NULL, evidence_url=?, updated_at=? WHERE domain=?`).run(payee.method, payee.email, payee.evidenceUrl, now(), domain);
+    db.prepare(`UPDATE creators SET payee_method=?, email=?, paypal_me=NULL, near_account=?, evidence_url=?, updated_at=? WHERE domain=?`).run(payee.method, payee.email, payee.near ?? null, payee.evidenceUrl, now(), domain);
     db.prepare(`UPDATE accruals SET status='ACCRUED', email=?, updated_at=? WHERE domain=? AND status IN ('ESCROW','LINK_ONLY')`).run(payee.email, now(), domain);
   })();
   const deps = { db, paypal: ctx.paypal, minPayoutCents: cfg.minPayoutCents, maxBatchCents: cfg.maxBatchCents };

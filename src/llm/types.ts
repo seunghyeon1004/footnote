@@ -39,6 +39,10 @@ export interface SettleTools {
   createBatch(items: { email: string; cents: number }[]): Promise<BatchResult>;
   log(message: string): void;
   minPayoutCents: number;
+  /** NEAR rail (present only when NEAR is on). Same contract: the agent picks who, the ledger decides whether. */
+  listSettleableNear?(): { account: string; cents: number; domains: string[] }[];
+  createNearPayouts?(items: { account: string; cents: number }[]): Promise<unknown>;
+  nearMinPayoutCents?: number;
 }
 
 export interface LLM {

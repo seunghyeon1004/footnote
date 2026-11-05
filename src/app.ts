@@ -48,7 +48,7 @@ export function createApp(ctx: Ctx): Hono {
     return u;
   }
 
-  app.get("/api/health", (c) => c.json({ ok: true, paypal: cfg.paypal.simulator ? "simulator" : "sandbox", llm: cfg.llm.provider }));
+  app.get("/api/health", (c) => c.json({ ok: true, paypal: cfg.paypal.simulator ? "simulator" : "sandbox", llm: cfg.llm.provider, near: ctx.near ? (ctx.near.client.mode === "simulator" ? "simulator" : ctx.near.client.network) : "off" }));
 
   app.get("/api/me", (c) => {
     const u = userOf(c);
@@ -57,7 +57,7 @@ export function createApp(ctx: Ctx): Hono {
       config: {
         packs: cfg.packs, minFeeCents: cfg.minFeeCents, maxFeeCents: cfg.maxFeeCents, defaultFeeCents: cfg.defaultFeeCents,
         minPayoutCents: cfg.minPayoutCents, minSharePct: Math.round(cfg.minScore * 100),
-        mode: { paypal: cfg.paypal.simulator ? "simulator" : "sandbox", llm: cfg.llm.provider, llmModel: cfg.llm.model },
+        mode: { paypal: cfg.paypal.simulator ? "simulator" : "sandbox", llm: cfg.llm.provider, llmModel: cfg.llm.model, near: ctx.near ? (ctx.near.client.mode === "simulator" ? "simulator" : ctx.near.client.network) : "off" },
         demoSites: DEMO_SITES, sampleQuestions: SAMPLE_QUESTIONS,
       },
     });
@@ -173,7 +173,28 @@ export function createApp(ctx: Ctx): Hono {
     return c.json(sweepEscrow(db, ttl));
   });
   app.post("/api/payouts/refresh", async (c) => c.json({ updated: await refreshPendingBatches(db, ctx.paypal) }));
-  app.get("/api/ledger", (c) => c.json(globalLedger(db)));
+  app.get("/api/ledger", (c) => c.json({ ...globalLedger(db), nearPayouts: db.prepare(`SELECT id, near_account AS account, cents, yocto, status, tx_hash AS txHash, receipt_status AS receiptStatus, receipt_tx AS receiptTx, network, usd_per_near AS usdPerNear, created_at AS createdAt FROM near_payouts ORDER BY created_at DESC LIMIT 50`).all() }));
+
+  // ---- NEAR rail: status + the public on-chain royalty receipt log ---------------------------
+  app.get("/api/near/status", async (c) => {
+    if (!ctx.near) return c.json({ enabled: false });
+    const n = ctx.near.client;
+    const [bal, rate] = await Promise.all([n.balance().catch(() => null), ctx.near.rate.quote().catch((e: Error) => ({ error: e.message }))]);
+    return c.json({
+      enabled: true, mode: n.mode, network: n.network, settlementAccount: n.accountId, settlementAccountUrl: n.explorerAccount(n.accountId),
+      receiptContract: n.receiptContract, receiptContractUrl: n.receiptContract ? n.explorerAccount(n.receiptContract) : null,
+      balanceNear: bal === null ? null : (Number(bal / 10n ** 20n) / 1e4).toFixed(4), rate,
+      minPayoutCents: cfg.near.minPayoutCents, maxPayoutCents: cfg.near.maxPayoutCents, rail: cfg.near.rail,
+    });
+  });
+  app.get("/api/near/receipts", async (c) => {
+    if (!ctx.near) return c.json({ enabled: false, receipts: [] });
+    try {
+      return c.json({ enabled: true, contract: ctx.near.client.receiptContract, receipts: await ctx.near.client.recentReceipts(20) });
+    } catch (e) {
+      return c.json({ enabled: true, error: (e as Error).message, receipts: [] }, 502);
+    }
+  });
 
   // ---- PayPal webhooks (PAYMENT.PAYOUTS-ITEM.*) -------------------------------------------
   app.post("/api/webhooks/paypal", async (c) => {

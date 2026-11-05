@@ -72,3 +72,24 @@ Unclaimed escrow is returned to the asker's credits after `ESCROW_TTL_DAYS` (def
 * A page that declares a payee different from its `/.well-known` file wins the way the order above says; operators
   should treat a mismatch as a signal to hold funds.
 * A payee change takes effect for **future** answers only; settled payouts are immutable ledger entries.
+
+
+## Extension: NEAR payee (draft v1.1)
+
+A creator may additionally (or instead) declare a NEAR account. Same trust model: only structured, domain-controlled
+locations count; page prose is never parsed.
+
+```html
+<meta name="footnote:near" content="alice.near">
+```
+
+```json
+{ "version": 1, "name": "Alice", "paypal": { "email": "alice@example.com" }, "near": "alice.near" }
+```
+
+`near` is a string account id (named such as `alice.near`, sub-account, or a 64-hex implicit account) or the object form
+`{ "account": "alice.near" }`. It MUST match the NEAR account-id grammar; anything else is ignored. A site that declares
+both PayPal and NEAR is paid on the rail the implementation prefers (Footnote: NEAR when its NEAR rail is on).
+`<meta name="footnote:paypal">` takes precedence over `footnote:near` for the *method* label, and the two are merged:
+the NEAR account may come from the meta tag or from `/.well-known/footnote.json`. Domain claims (escrow release) accept
+either declaration as proof of control.

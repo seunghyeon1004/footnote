@@ -9,7 +9,7 @@ describe("end-to-end (simulator PayPal + fixture LLM)", () => {
   it("serves config and an empty wallet", async () => {
     const me = await h.api("/api/me");
     expect(me.json.user.balanceCents).toBe(0);
-    expect(me.json.config.mode).toEqual({ paypal: "simulator", llm: "fixture", llmModel: "fixture" });
+    expect(me.json.config.mode).toEqual({ paypal: "simulator", llm: "fixture", llmModel: "fixture", near: "off" });
     expect(me.json.config.demoSites).toHaveLength(7);
   });
 

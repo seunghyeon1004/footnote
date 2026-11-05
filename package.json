@@ -15,7 +15,11 @@
     "typecheck": "tsc --noEmit",
     "e2e": "tsx scripts/e2e.ts",
     "demo": "MIN_PAYOUT_CENTS=10 tsx src/server.ts",
-    "smoke:paypal": "tsx scripts/paypal-smoke.ts"
+    "smoke:paypal": "tsx scripts/paypal-smoke.ts",
+    "near:setup": "tsx scripts/near-setup.ts",
+    "near:e2e": "tsx scripts/near-e2e.ts",
+    "near:contract": "cd contracts/royalty-receipts && cargo build --release --target wasm32-unknown-unknown",
+    "near:contract:test": "cd contracts/royalty-receipts && cargo test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.5.0",
@@ -23,9 +27,10 @@
     "better-sqlite3": "^13.0.3",
     "cheerio": "^1.2.0",
     "hono": "^4.13.16",
+    "near-api-js": "^7.4.0",
+    "tsx": "^4.23.15",
     "yaml": "^2.9.1",
-    "zod": "^4.6.7",
-    "tsx": "^4.23.15"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",

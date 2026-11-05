@@ -7,6 +7,7 @@ import { makeLLM } from "./llm/index.js";
 import { makeFetcher } from "./fetcher.js";
 import { createApp } from "./app.js";
 import { refreshPendingBatches } from "./ledger.js";
+import { makeNearRail } from "./near/index.js";
 import type { Ctx } from "./service.js";
 
 // tiny .env loader (no dependency); real env vars win
@@ -26,12 +27,14 @@ const ctx: Ctx = {
   llm: makeLLM(cfg),
   fetcher: makeFetcher(cfg.publicUrl),
   settleLock: Promise.resolve(),
+  near: makeNearRail(cfg),
 };
 const app = createApp(ctx);
 serve({ fetch: app.fetch, port: cfg.port }, () => {
   console.log(`\n  Footnote  ${cfg.publicUrl}`);
   console.log(`  PayPal:   ${cfg.paypal.simulator ? "SIMULATOR (set PAYPAL_CLIENT_ID/SECRET for the real sandbox)" : "sandbox " + cfg.paypal.baseUrl}`);
   console.log(`  LLM:      ${cfg.llm.provider === "fixture" ? "FIXTURE MODE (set ANTHROPIC_API_KEY for real research)" : cfg.llm.provider + " " + cfg.llm.model}`);
+  console.log(`  NEAR:     ${ctx.near ? `${ctx.near.client.mode === "simulator" ? "SIMULATOR (no chain)" : ctx.near.client.network} as ${ctx.near.client.accountId}${ctx.near.client.receiptContract ? `, receipts ${ctx.near.client.receiptContract}` : ""}` : "off (set NEAR_ACCOUNT_ID + NEAR_PRIVATE_KEY to enable the NEAR rail)"}`);
   console.log(`  Payout minimum: ${cfg.minPayoutCents}c\n`);
 });
 setInterval(() => void refreshPendingBatches(db, ctx.paypal).catch(() => {}), 20_000).unref();

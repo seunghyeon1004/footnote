@@ -16,14 +16,14 @@ export const freePort = () =>
     });
   });
 
-export async function boot(env: Record<string, string> = {}) {
+export async function boot(env: Record<string, string> = {}, extra: { near?: Ctx["near"] } = {}) {
   const port = await freePort();
   const cfg = loadConfig({ PORT: String(port), PUBLIC_URL: `http://localhost:${port}`, DB_PATH: ":memory:", MIN_PAYOUT_CENTS: "10", LLM_PROVIDER: "fixture", ...env } as any);
   const db = openDb(":memory:");
   const ctx: Ctx = {
     cfg, db,
     paypal: new PayPalClient({ clientId: cfg.paypal.clientId, clientSecret: cfg.paypal.clientSecret, baseUrl: cfg.paypal.baseUrl }),
-    llm: makeLLM(cfg, {} as any), fetcher: makeFetcher(cfg.publicUrl), settleLock: Promise.resolve(),
+    llm: makeLLM(cfg, {} as any), fetcher: makeFetcher(cfg.publicUrl), settleLock: Promise.resolve(), near: extra.near ?? null,
   };
   const server = serve({ fetch: createApp(ctx).fetch, port });
   const base = cfg.publicUrl;

@@ -22,7 +22,7 @@ git clone <this repo> footnote && cd footnote
 npm install
 cp .env.example .env        # optional: add ANTHROPIC_API_KEY and PayPal sandbox keys
 npm run demo                # http://localhost:3000
-npm test                    # 86 tests
+npm test                    # 115 tests
 ```
 
 With **no keys at all** it still runs end to end, with two clearly labelled stand-ins shown in the UI header:
@@ -123,6 +123,114 @@ rejection (`test/ledger.test.ts`, `test/anthropic.test.ts`).
 | Claim requires proof of domain control (meta tag or `/.well-known`), not a `paypal.me` link | `claimDomain` |
 | Unclaimed escrow refunds to the asker after `ESCROW_TTL_DAYS` | `sweepEscrow` |
 
+## NEAR integration (built during NEAR Hackathon)
+
+**Track: Agent Economy** (also fits AI Security & Defense). Footnote's settlement agent now pays creators in **NEAR** as
+well as PayPal, and every payment leaves a public receipt on-chain.
+
+### Baseline disclosure (what existed before, what is new)
+
+* **Baseline, built before the hackathon:** everything in this repository up to tag
+  `pre-near-hackathon` (commit `7a4a827`): the answer engine, attribution, ledger, escrow, PayPal
+  Orders/Payouts rail, payee declaration spec, UI, 86 tests. It was built for a different (PayPal) hackathon and is
+  **not** what is being judged here.
+* **Built during the NEAR hackathon window (2026-11-05 onward), branch `near`:** the NEAR payout rail only.
+  Review it with `git diff pre-near-hackathon..near` (about 1,400 added lines, excluding lockfiles):
+
+| New in the window | Files |
+| ----------------- | ----- |
+| NEAR client (near-api-js v7), account validation, USD→yoctoNEAR conversion, live price feed | `src/near/client.ts`, `account.ts`, `rate.ts`, `index.ts` |
+| Guardrailed NEAR settlement (reserve → transfer → on-chain receipt, release on failure) | `src/near/settle.ts` |
+| `royalty-receipts` smart contract (Rust, near-sdk 5) with unit tests | `contracts/royalty-receipts/` |
+| Creator declaration: `footnote:near` meta tag and `"near"` in `footnote.json` | `src/payee.ts`, `docs/footnote-spec.md` |
+| Rail routing in the ledger, claim flow in NEAR, settlement-agent NEAR tools | `src/ledger.ts`, `src/service.ts`, `src/llm/anthropic.ts`, `src/llm/prompts.ts` |
+| Setup + live end-to-end scripts, 29 new tests, UI receipt lines | `scripts/near-setup.ts`, `scripts/near-e2e.ts`, `test/near.test.ts`, `public/app.js` |
+
+Libraries used (not original work): `near-api-js`, `near-sdk` (Rust), plus the baseline dependencies.
+
+### What it does
+
+1. A creator declares where to pay them in NEAR, the same two domain-controlled ways as PayPal:
+
+   ```html
+   <meta name="footnote:near" content="alice.near">
+   ```
+
+   or in `/.well-known/footnote.json`: `{"version": 1, "near": "alice.near"}` (alone, or next to the `paypal` block).
+2. When an answer cites that creator and the NEAR rail is on, the royalty accrues in USD cents on the **NEAR rail**
+   (`FOOTNOTE_RAIL=paypal` turns the rail off per deployment; a creator who declares only NEAR while the rail is off
+   goes to escrow like anyone else).
+3. The **settlement agent** (Claude) gets two more tools next to the PayPal ones: `list_settleable_near_payees` and
+   `create_near_payouts`. The ledger decides whether, exactly like PayPal: known payee only, the whole outstanding
+   balance, at least `NEAR_MIN_PAYOUT_CENTS`, at most `NEAR_MAX_PAYOUT_CENTS`, valid account id, no duplicates. Without
+   a Claude key, deterministic rules run the same guarded function. Gemini/OpenAI/Vultr providers do not have the NEAR
+   tools; the ledger finishes NEAR payouts deterministically for them (the receipt says who settled).
+4. For each payee the amount in cents is converted to **yoctoNEAR** with BigInt math at the live CoinGecko price
+   (or `NEAR_USD_RATE`). If no trustworthy price is available, nothing is paid; royalties stay accrued.
+5. A native NEAR transfer is sent from the settlement account. The transaction and **every receipt** are checked for
+   failure. Accruals are reserved (`ACCRUED→PENDING`) first and released if the chain rejects the transfer.
+6. The settlement account then calls `log_receipt` on the **royalty-receipts contract** with the payout transaction
+   hash, the USD amount, the yocto amount and a SHA-256 of the per-source split. A NEP-297 style `royalty_paid` event is
+   emitted and anyone can read the log (`recent`, `total_for`). A failed receipt never undoes a payout and is retried.
+7. The royalty receipt in the UI links the payout transaction and the on-chain receipt on NearBlocks.
+
+An unclaimed domain that later publishes a NEAR declaration claims its escrow in NEAR (`POST /api/claim`).
+
+### Run it (machine-followable)
+
+Prerequisites: Node 20+, Rust with the `wasm32-unknown-unknown` target (`rustup target add wasm32-unknown-unknown`).
+No wallet, no browser, no funds of yours: testnet accounts are created through the public testnet helper.
+
+```bash
+npm install
+npm run near:contract:test          # Rust unit tests for the receipts contract
+npm run near:contract               # builds contracts/royalty-receipts to wasm
+npm run near:setup                  # creates settlement + contract accounts on testnet, deploys, writes NEAR_* into .env
+npm run near:e2e                    # LIVE run on testnet; re-verifies every tx against the RPC; exit 1 on any mismatch
+npm test                            # 115 tests, no network needed (NEAR simulator + scripted clients)
+npm run demo                        # UI at http://localhost:3000 (header shows "NEAR testnet")
+```
+
+Live evidence from a real run is in [`docs/evidence/near-e2e.json`](docs/evidence/near-e2e.json) (transaction hashes,
+amounts, rate, on-chain receipts) and `docs/evidence/near-receipt-ui.png`.
+
+### Mainnet is a config switch
+
+```bash
+NEAR_NETWORK=mainnet
+NEAR_ALLOW_MAINNET=1                # deliberate second switch: this moves real money
+NEAR_ACCOUNT_ID=your-settlement.near
+NEAR_PRIVATE_KEY=ed25519:...
+NEAR_RECEIPT_CONTRACT=royalty-log.your-settlement.near   # deploy the same wasm, call new({settler})
+```
+
+Without `NEAR_ALLOW_MAINNET=1` the server refuses to start the rail and the ledger refuses to pay.
+
+### NEAR configuration
+
+| Variable | Default | Meaning |
+| -------- | ------- | ------- |
+| `NEAR_ACCOUNT_ID`, `NEAR_PRIVATE_KEY` | none → rail off | settlement account (pays royalties, writes receipts) |
+| `NEAR_NETWORK` | `testnet` | `testnet` or `mainnet` |
+| `NEAR_RPC_URL` | FastNEAR public RPC for the network | any JSON-RPC endpoint |
+| `NEAR_RECEIPT_CONTRACT` | none | royalty-receipts contract id; empty = payouts without on-chain receipts |
+| `NEAR_ALLOW_MAINNET` | off | required for mainnet |
+| `NEAR_MIN_PAYOUT_CENTS` / `NEAR_MAX_PAYOUT_CENTS` | `10` / `500` | per-payee batching minimum / per-payout cap (NEAR fees are tiny, so the minimum is lower than PayPal's) |
+| `NEAR_USD_RATE` | live CoinGecko | fixed USD per NEAR (also the simulator rate) |
+| `NEAR_SIMULATOR` | off | `1` = offline stand-in, labelled "NEAR simulator" in the UI, hashes prefixed `sim_` |
+| `FOOTNOTE_RAIL` | `auto` | `paypal` disables the NEAR rail |
+
+HTTP: `GET /api/near/status` (network, accounts, balance, live rate), `GET /api/near/receipts` (reads the contract).
+
+### Honest limits
+
+* Testnet NEAR has no value; the USD→NEAR conversion uses the real market price so amounts mirror what mainnet would pay.
+* Native NEAR only. Paying USDC (NEP-141 `ft_transfer`, with `storage_deposit`) is not implemented.
+* Receipts are written by the settlement account, so they prove what Footnote *says* it paid, cross-checkable against
+  the payout transaction hash stored in each receipt; they are not trustless attestations.
+* A process crash between reserving and sending leaves a `PENDING` accrual to reconcile manually (same as the PayPal rail).
+* `near-api-js` public RPC endpoints can rate-limit; set `NEAR_RPC_URL` to your own provider for heavy use.
+
 ## Demo creator sites
 
 Seven tiny sites are served under `/demo-sites/`, one per branch, all about indoor composting:
@@ -178,7 +286,7 @@ push updates add `https://<service>.onrender.com/api/webhooks/paypal` in the Pay
 ## Tests and evidence
 
 ```bash
-npm test          # 86 vitest tests: attribution, payee resolution, ledger, injection, PayPal client, claim, e2e HTTP
+npm test          # 115 vitest tests: attribution, payee resolution, ledger, injection, PayPal client, claim, e2e HTTP
 npm run typecheck
 npm run demo &    # then:
 npm run e2e       # drives the whole flow against the running server and prints a receipt

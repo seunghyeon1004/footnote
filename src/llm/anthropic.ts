@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { LLM, ResearchCtx, ResearchResult, AttributionInput, AttributionScore, SettleTools } from "./types.js";
-import { RESEARCH_SYSTEM, ATTRIBUTION_SYSTEM, SETTLE_SYSTEM, wrapUntrusted } from "./prompts.js";
+import { RESEARCH_SYSTEM, ATTRIBUTION_SYSTEM, SETTLE_SYSTEM, SETTLE_NEAR_ADDENDUM, wrapUntrusted } from "./prompts.js";
 
 interface Opts {
   apiKey?: string;
@@ -144,9 +144,26 @@ export function anthropicLLM(o: Opts): LLM {
           },
         },
       ];
-      const messages: any[] = [{ role: "user", content: `Settle royalties now. Minimum payout is ${tools.minPayoutCents} cents.` }];
+      const hasNear = !!(tools.listSettleableNear && tools.createNearPayouts);
+      if (hasNear) {
+        defs.push(
+          { name: "list_settleable_near_payees", description: "List NEAR accounts whose accrued royalties reached the NEAR minimum payout, with exact amount_cents (US cents, converted to NEAR by the ledger).", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+          {
+            name: "create_near_payouts",
+            description: "Pay NEAR accounts with native NEAR transfers and log an on-chain receipt for each. One item per account; amount_cents must equal the listed balance.",
+            input_schema: {
+              type: "object",
+              properties: { items: { type: "array", items: { type: "object", properties: { account: { type: "string" }, amount_cents: { type: "integer" } }, required: ["account", "amount_cents"], additionalProperties: false } } },
+              required: ["items"],
+              additionalProperties: false,
+            },
+          }
+        );
+      }
+      const system = hasNear ? SETTLE_SYSTEM + SETTLE_NEAR_ADDENDUM : SETTLE_SYSTEM;
+      const messages: any[] = [{ role: "user", content: `Settle royalties now. Minimum payout is ${tools.minPayoutCents} cents${hasNear ? ` (PayPal) and ${tools.nearMinPayoutCents ?? tools.minPayoutCents} cents (NEAR)` : ""}.` }];
       for (let turn = 0; turn < 6; turn++) {
-        const r = await create({ system: SETTLE_SYSTEM, tools: defs, messages, max_tokens: 2000, output_config: { effort: "low" } });
+        const r = await create({ system, tools: defs, messages, max_tokens: 2000, output_config: { effort: "low" } });
         failOnRefusal(r);
         messages.push({ role: "assistant", content: r.content });
         const uses = r.content.filter((b: any) => b.type === "tool_use");
@@ -163,6 +180,11 @@ export function anthropicLLM(o: Opts): LLM {
               const items = ((u.input as any).items as { email: string; amount_cents: number }[]).map((i) => ({ email: i.email, cents: i.amount_cents }));
               const b = await tools.createBatch(items);
               results.push({ type: "tool_result", tool_use_id: u.id, content: JSON.stringify(b) });
+            } else if (u.name === "list_settleable_near_payees" && hasNear) {
+              results.push({ type: "tool_result", tool_use_id: u.id, content: JSON.stringify(tools.listSettleableNear!().map((p) => ({ account: p.account, amount_cents: p.cents, domains: p.domains }))) });
+            } else if (u.name === "create_near_payouts" && hasNear) {
+              const items = ((u.input as any).items as { account: string; amount_cents: number }[]).map((i) => ({ account: i.account, cents: i.amount_cents }));
+              results.push({ type: "tool_result", tool_use_id: u.id, content: JSON.stringify(await tools.createNearPayouts!(items)) });
             } else results.push({ type: "tool_result", tool_use_id: u.id, is_error: true, content: "unknown tool" });
           } catch (e) {
             results.push({ type: "tool_result", tool_use_id: u.id, is_error: true, content: (e as Error).message });
