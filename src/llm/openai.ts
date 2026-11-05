@@ -3,7 +3,7 @@ import type { SearchFn } from "../search.js";
 import { RESEARCH_SYSTEM, ATTRIBUTION_SYSTEM, SETTLE_SYSTEM, wrapUntrusted } from "./prompts.js";
 
 /** OpenAI-compatible provider (Chat Completions + function calling). No built-in web search: it reads the library and any URL it is given/knows. */
-export function openaiLLM(o: { apiKey: string; model: string; baseUrl?: string; fetch?: typeof fetch; search?: SearchFn }): LLM {
+export function openaiLLM(o: { apiKey: string; model: string; baseUrl?: string; fetch?: typeof fetch; search?: SearchFn; name?: "openai" | "vultr" }): LLM {
   const f = o.fetch ?? fetch;
   const base = o.baseUrl ?? "https://api.openai.com/v1";
 
@@ -41,7 +41,7 @@ export function openaiLLM(o: { apiKey: string; model: string; baseUrl?: string; 
   }
 
   return {
-    provider: "openai",
+    provider: o.name ?? "openai",
     model: o.model,
     fixture: false,
 

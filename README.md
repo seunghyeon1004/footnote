@@ -149,6 +149,7 @@ creator page. Undo with `--undo`.
 | `PAYPAL_SIMULATOR` | auto | `1` forces the simulator even with keys |
 | `ANTHROPIC_API_KEY` | none | real research/attribution/settlement with Claude |
 | `GEMINI_API_KEY` | none | alternative provider (Gemini function calling); `LLM_PROVIDER=gemini` forces it when several keys exist |
+| `VULTR_API_KEY` | none | Vultr Serverless Inference (OpenAI-compatible, `VULTR_BASE_URL` default `https://api.vultrinference.com/v1`, model via `VULTR_MODEL`); config-only, untested |
 | `OPENAI_API_KEY` | none | alternative provider (untested against the live API) |
 | `SERPER_API_KEY` | none | web search for the Gemini/OpenAI providers (Claude uses Anthropic's server-side search) |
 | `WELCOME_CREDITS_CENTS` | `0` | free starting credits per session (hosted demo) |

@@ -5,7 +5,7 @@ export interface Config {
   publicUrl: string;
   dbPath: string;
   paypal: { clientId: string; clientSecret: string; baseUrl: string; webhookId: string; simulator: boolean };
-  llm: { provider: "anthropic" | "openai" | "gemini" | "fixture"; model: string; webSearch: boolean; fallbacks: boolean };
+  llm: { provider: "anthropic" | "openai" | "gemini" | "vultr" | "fixture"; model: string; webSearch: boolean; fallbacks: boolean };
   minPayoutCents: number;
   minFeeCents: number;
   maxFeeCents: number;
@@ -35,15 +35,18 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const provider: Config["llm"]["provider"] =
     forced === "fixture" ? "fixture"
     : forced === "gemini" && env.GEMINI_API_KEY ? "gemini"
+    : forced === "vultr" && env.VULTR_API_KEY ? "vultr"
     : forced === "openai" && env.OPENAI_API_KEY ? "openai"
     : forced === "anthropic" && env.ANTHROPIC_API_KEY ? "anthropic"
     : env.ANTHROPIC_API_KEY ? "anthropic"
     : env.OPENAI_API_KEY ? "openai"
     : env.GEMINI_API_KEY ? "gemini"
+    : env.VULTR_API_KEY ? "vultr"
     : "fixture";
   const model =
     provider === "anthropic" ? env.FOOTNOTE_MODEL || "claude-sonnet-5-5"
     : provider === "openai" ? env.FOOTNOTE_MODEL || env.OPENAI_MODEL || "gpt-4.1"
+    : provider === "vultr" ? env.FOOTNOTE_MODEL || env.VULTR_MODEL || "llama-3.3-70b-instruct-fp8"
     : provider === "gemini" ? env.FOOTNOTE_MODEL || "gemini-2.5-flash"
     : "fixture";
   return {

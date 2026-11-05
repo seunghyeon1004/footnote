@@ -42,7 +42,7 @@ export interface SettleTools {
 }
 
 export interface LLM {
-  provider: "anthropic" | "openai" | "gemini" | "fixture";
+  provider: "anthropic" | "openai" | "gemini" | "vultr" | "fixture";
   model: string;
   fixture: boolean;
   research(question: string, ctx: ResearchCtx): Promise<ResearchResult>;
