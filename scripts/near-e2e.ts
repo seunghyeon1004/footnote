@@ -23,14 +23,14 @@ for (const line of fs.existsSync(".env") ? fs.readFileSync(".env", "utf8").split
 const port = 3917;
 const cfg = loadConfig({
   ...process.env, PORT: String(port), PUBLIC_URL: `http://localhost:${port}`, DB_PATH: ":memory:", MIN_PAYOUT_CENTS: "10",
-  LLM_PROVIDER: "fixture", PAYPAL_CLIENT_ID: "", PAYPAL_CLIENT_SECRET: "", ALLOW_DEV_GRANT: "1",
+  LLM_PROVIDER: process.env.E2E_LLM || "fixture", PAYPAL_CLIENT_ID: "", PAYPAL_CLIENT_SECRET: "", ALLOW_DEV_GRANT: "1",
 } as any);
 if (cfg.near.mode !== "live") { console.error("NEAR is not configured: run `npm run near:setup` first"); process.exit(2); }
 const db = openDb(":memory:");
 const near = makeNearRail(cfg)!;
 const ctx: Ctx = {
   cfg, db, paypal: new PayPalClient({ clientId: cfg.paypal.clientId, clientSecret: cfg.paypal.clientSecret, baseUrl: cfg.paypal.baseUrl }),
-  llm: makeLLM(cfg, {} as any), fetcher: makeFetcher(cfg.publicUrl), settleLock: Promise.resolve(), near,
+  llm: makeLLM(cfg, process.env), fetcher: makeFetcher(cfg.publicUrl), settleLock: Promise.resolve(), near,
 };
 const server = serve({ fetch: createApp(ctx).fetch, port });
 const base = cfg.publicUrl;
@@ -79,7 +79,7 @@ for (const r of rec.receipts ?? []) {
 const after = await near.client.balance();
 console.log(`settlement balance ${Number(before / 10n ** 20n) / 1e4} -> ${Number(after / 10n ** 20n) / 1e4} NEAR`);
 fs.mkdirSync("docs/evidence", { recursive: true });
-fs.writeFileSync("docs/evidence/near-e2e.json", JSON.stringify({ ranAt: new Date().toISOString(), network: near.client.network, settlementAccount: near.client.accountId, receiptContract: near.client.receiptContract, question: ans.question, receipt: ans.receipt, payouts: evidence, onchainReceipts: rec.receipts, checks }, null, 2) + "\n");
+fs.writeFileSync(`docs/evidence/near-e2e${process.env.E2E_LLM === "anthropic" ? "-claude" : ""}.json`, JSON.stringify({ llm: ctx.llm.provider + " " + ctx.llm.model, ranAt: new Date().toISOString(), network: near.client.network, settlementAccount: near.client.accountId, receiptContract: near.client.receiptContract, question: ans.question, receipt: ans.receipt, payouts: evidence, onchainReceipts: rec.receipts, checks }, null, 2) + "\n");
 server.close();
 const bad = checks.filter((c) => !c.ok);
 console.log(bad.length ? `\n${bad.length} CHECK(S) FAILED` : `\nALL ${checks.length} CHECKS PASSED. Evidence: docs/evidence/near-e2e.json`);

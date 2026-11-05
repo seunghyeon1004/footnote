@@ -1,0 +1,113 @@
+{
+  "note": "Real run through the UI: claude-sonnet-5-5 researched, attributed and settled (NEAR tools) on NEAR testnet. Verify any hash at https://testnet.nearblocks.io/txns/<hash>",
+  "answerId": "a_80295c499549",
+  "question": "Bokashi or a worm bin for a small apartment: how long does each take and what are the limits?",
+  "feeCents": 100,
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-5-5",
+    "fixture": false
+  },
+  "settlementAccount": "footnote-settle-ksroq0.testnet",
+  "receiptContract": "royalty-log.footnote-settle-ksroq0.testnet",
+  "payouts": [
+    {
+      "near_account": "footnote-demo-compost.testnet",
+      "cents": 43,
+      "yocto": "106435643564356435643564",
+      "usd_per_near": 4.04,
+      "rate_source": "coingecko",
+      "network": "testnet",
+      "settled_by": "agent",
+      "tx_hash": "CstX9LQmw9uMQ3CAXNnwLr5tzGy16wpedyqLaGy1DTdL",
+      "receipt_tx": "AubcvSjRkNx3tAAhAQ5UhpwRHQStPWAfy291M5Y1ySp1",
+      "receipt_status": "LOGGED",
+      "answer_ids": "[\"a_80295c499549\"]",
+      "split_hash": "02ecb5ddd8282d360698c4d1e9cff09ee0b4e7370d132c1f5b39cf6c5902cb42"
+    },
+    {
+      "near_account": "footnote-demo-worm.testnet",
+      "cents": 33,
+      "yocto": "81683168316831683168316",
+      "usd_per_near": 4.04,
+      "rate_source": "coingecko",
+      "network": "testnet",
+      "settled_by": "agent",
+      "tx_hash": "8e4hh1A4dLVzkhuieMfCMpodZh9mAZxAyDAE5xbKKQS4",
+      "receipt_tx": "HT7FPr16uA8MwrA1A7q46YdD1yc1xsBSB7L6xh1VB22B",
+      "receipt_status": "LOGGED",
+      "answer_ids": "[\"a_80295c499549\"]",
+      "split_hash": "984b9838132c574a1dc2f9d68de6a028bf615b1478a2feaf9e67e9a0efa44bb0"
+    }
+  ],
+  "events": [
+    {
+      "stage": "researching",
+      "message": "anthropic research agent started"
+    },
+    {
+      "stage": "researching",
+      "message": "Read Bokashi Bench"
+    },
+    {
+      "stage": "researching",
+      "message": "Read Compost Diaries"
+    },
+    {
+      "stage": "researching",
+      "message": "Read Worm Bin Weekly"
+    },
+    {
+      "stage": "researching",
+      "message": "Answer drafted with 3 cited sources"
+    },
+    {
+      "stage": "attributing",
+      "message": "3 of 3 sources earn a share; 0 dropped"
+    },
+    {
+      "stage": "resolving",
+      "message": "compost-diaries.demo: payee via <meta name=\"footnote:paypal\"> (NEAR account footnote-demo-compost.testnet)"
+    },
+    {
+      "stage": "resolving",
+      "message": "worm-bin-weekly.demo: payee via /.well-known/footnote.json (NEAR account footnote-demo-worm.testnet)"
+    },
+    {
+      "stage": "resolving",
+      "message": "bokashi-bench.demo: payee via paypal.me link on page"
+    },
+    {
+      "stage": "paying",
+      "message": "compost-diaries.demo: 43c accrued toward a NEAR payout to footnote-demo-compost.testnet"
+    },
+    {
+      "stage": "paying",
+      "message": "worm-bin-weekly.demo: 33c accrued toward a NEAR payout to footnote-demo-worm.testnet"
+    },
+    {
+      "stage": "paying",
+      "message": "bokashi-bench.demo: 24c held (paypal.me link only)"
+    },
+    {
+      "stage": "paying",
+      "message": "Settlement agent started: claude-sonnet-5-5 drives the payout tools (PayPal Payouts + NEAR transfers)"
+    },
+    {
+      "stage": "paying",
+      "message": "Agent paid footnote-demo-compost.testnet on NEAR testnet (43c = 0.1064 NEAR), tx CstX9LQmw9uMQ3CAXNnwLr5tzGy16wpedyqLaGy1DTdL, on-chain receipt AubcvSjRkNx3tAAhAQ5UhpwRHQStPWAfy291M5Y1ySp1"
+    },
+    {
+      "stage": "paying",
+      "message": "Agent paid footnote-demo-worm.testnet on NEAR testnet (33c = 0.0817 NEAR), tx 8e4hh1A4dLVzkhuieMfCMpodZh9mAZxAyDAE5xbKKQS4, on-chain receipt HT7FPr16uA8MwrA1A7q46YdD1yc1xsBSB7L6xh1VB22B"
+    },
+    {
+      "stage": "paying",
+      "message": "I paid two NEAR accounts, 43\u00a2 to footnote-demo-compost.testnet and 33\u00a2 to footnote-demo-worm.testnet, and both transfers succeeded. No PayPal payees reached the minimum, so I sent no PayPal batch."
+    },
+    {
+      "stage": "done",
+      "message": "Royalty receipt ready"
+    }
+  ]
+}

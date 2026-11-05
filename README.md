@@ -191,8 +191,11 @@ npm test                            # 115 tests, no network needed (NEAR simulat
 npm run demo                        # UI at http://localhost:3000 (header shows "NEAR testnet")
 ```
 
-Live evidence from a real run is in [`docs/evidence/near-e2e.json`](docs/evidence/near-e2e.json) (transaction hashes,
-amounts, rate, on-chain receipts) and `docs/evidence/near-receipt-ui.png`.
+Live evidence from real runs: [`docs/evidence/near-claude-ui-run.json`](docs/evidence/near-claude-ui-run.json) (through the UI,
+`claude-sonnet-5-5` researched, attributed and paid two creators with the NEAR tools; tx hashes, amounts, rate, on-chain
+receipts), [`near-e2e-claude.json`](docs/evidence/near-e2e-claude.json) (`E2E_LLM=anthropic npm run near:e2e`, needs `ANTHROPIC_API_KEY`),
+[`near-e2e.json`](docs/evidence/near-e2e.json) (fixture research, live NEAR), and the screenshots `near-receipt-ui.png`,
+`near-settlement-agent-log.png`.
 
 ### Mainnet is a config switch
 

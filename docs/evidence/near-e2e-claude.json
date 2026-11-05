@@ -1,0 +1,187 @@
+{
+  "llm": "anthropic claude-sonnet-5-5",
+  "ranAt": "2026-11-05T02:59:03.076Z",
+  "network": "testnet",
+  "settlementAccount": "footnote-settle-ksroq0.testnet",
+  "receiptContract": "royalty-log.footnote-settle-ksroq0.testnet",
+  "question": "How can I compost food scraps in a small apartment?",
+  "receipt": {
+    "totalCents": 100,
+    "paidToSourcesCents": 100,
+    "refundedCents": 0,
+    "settledBy": "agent",
+    "batches": [],
+    "nearPayouts": [
+      {
+        "id": "nfp_64551793160a",
+        "status": "SUCCESS"
+      }
+    ]
+  },
+  "payouts": [
+    {
+      "domain": "worm-bin-weekly.demo",
+      "account": "footnote-demo-worm.testnet",
+      "cents": 32,
+      "yocto": "79207920792079207920792",
+      "usdPerNear": 4.04,
+      "txHash": "NTBHZw3FWLbz1EAGFQkCxvocqrdfXacFxn6DCyzsMHe",
+      "txUrl": "https://testnet.nearblocks.io/txns/NTBHZw3FWLbz1EAGFQkCxvocqrdfXacFxn6DCyzsMHe",
+      "receiptTx": "FXZRGT5SEVZTfduvrzFjKYh7EjZDvWfeRdWA85V89ESX",
+      "receiptUrl": "https://testnet.nearblocks.io/txns/FXZRGT5SEVZTfduvrzFjKYh7EjZDvWfeRdWA85V89ESX"
+    }
+  ],
+  "onchainReceipts": [
+    {
+      "id": 0,
+      "payee": "footnote-demo-compost.testnet",
+      "answer_id": "a_372650803eb7",
+      "usd_cents": 31,
+      "yocto_near": "76543209876543209876543",
+      "payout_tx": "5LNTND8MKLiKtCby1UoVE9qi4RMvioWFvi7MmzCJggR6",
+      "split_hash": "25a7e9728557db1d12b36276290cd2acbf6097ffa0fcadde8f0752d92200da87",
+      "timestamp_ns": 1793846331461996500
+    },
+    {
+      "id": 1,
+      "payee": "footnote-demo-worm.testnet",
+      "answer_id": "a_372650803eb7",
+      "usd_cents": 24,
+      "yocto_near": "59259259259259259259259",
+      "payout_tx": "6YEjML3e96vK6yEZB5RpU3wKH8GdYPYa8XcgYYtSyPZo",
+      "split_hash": "948f207781bb4a6da57876077079c8f9cc9f3a8ba68267ec28999f61bbfda729",
+      "timestamp_ns": 1793846336873998800
+    },
+    {
+      "id": 2,
+      "payee": "footnote-demo-compost.testnet",
+      "answer_id": "a_fb9d98ec5303",
+      "usd_cents": 31,
+      "yocto_near": "76543209876543209876543",
+      "payout_tx": "4nD1RS3kRFtUWqens3HVZqsBtN6mptFrG4XmMKVNv7Pt",
+      "split_hash": "d5001334791d1d3986a41b38c3bb4aca394e4ba4472c128891165b76bc5291ab",
+      "timestamp_ns": 1793846443539589600
+    },
+    {
+      "id": 3,
+      "payee": "footnote-demo-worm.testnet",
+      "answer_id": "a_fb9d98ec5303",
+      "usd_cents": 24,
+      "yocto_near": "59259259259259259259259",
+      "payout_tx": "DEkd3Kvo1w5nzPRUTBF8XSgVVPz9ZWoWBigwaGAg9uzM",
+      "split_hash": "ceaa7ff12f7f69e427b934a86d6b5d7b63eb315e6819669d14835f2323aa341d",
+      "timestamp_ns": 1793846447911020300
+    },
+    {
+      "id": 4,
+      "payee": "footnote-demo-compost.testnet",
+      "answer_id": "a_54ca5e99570d",
+      "usd_cents": 31,
+      "yocto_near": "76543209876543209876543",
+      "payout_tx": "13J3MK8GXEzeWXrU6XGfjG1tDgzVutcE93oFfWcsbWfk",
+      "split_hash": "cf910e3ac5050d8b102a38428f21b19de02ebb43cb45270189d2435dba01d04d",
+      "timestamp_ns": 1793846464824823000
+    },
+    {
+      "id": 5,
+      "payee": "footnote-demo-worm.testnet",
+      "answer_id": "a_54ca5e99570d",
+      "usd_cents": 24,
+      "yocto_near": "59259259259259259259259",
+      "payout_tx": "A3578c1j43Y8NMoz7AE4BdWFiUiU1srHNNJHeSid3Zfx",
+      "split_hash": "9ee06ecbaa11a686d02563e6a30d1d740f886b5fe3c8bfcf6689004ab2d6fdd7",
+      "timestamp_ns": 1793846469595806200
+    },
+    {
+      "id": 6,
+      "payee": "footnote-demo-compost.testnet",
+      "answer_id": "a_1b50d74dda0f",
+      "usd_cents": 31,
+      "yocto_near": "76543209876543209876543",
+      "payout_tx": "ELNKFwJbEjyNEH3UeVra7T9eY1QtWQJXEqohuod8utkV",
+      "split_hash": "d7c9900ff88f5d00d03b1f47c50b6c77840b3573c1c980b0ed034c1ea34c61ff",
+      "timestamp_ns": 1793846568295274200
+    },
+    {
+      "id": 7,
+      "payee": "footnote-demo-worm.testnet",
+      "answer_id": "a_1b50d74dda0f",
+      "usd_cents": 24,
+      "yocto_near": "59259259259259259259259",
+      "payout_tx": "J31y3SZXGTkphm17kkpjV4rtUXxmnMakKUp1yZBYiJtq",
+      "split_hash": "6414e2b7102e628951629609a980ecbc19de794c6d4db3ab05bff5118d5a333a",
+      "timestamp_ns": 1793846573211505200
+    },
+    {
+      "id": 8,
+      "payee": "footnote-demo-compost.testnet",
+      "answer_id": "a_b603533e6ef5",
+      "usd_cents": 31,
+      "yocto_near": "76543209876543209876543",
+      "payout_tx": "BN3UYcv2M5cpHUzbhzqpwVXcWVLGGsjBTEbPCSuAQZx2",
+      "split_hash": "5b5ef4b4768ac976614ac67b40a1ce9952824bd293e398dfefa8db190db5471c",
+      "timestamp_ns": 1793847099114249200
+    },
+    {
+      "id": 9,
+      "payee": "footnote-demo-worm.testnet",
+      "answer_id": "a_b603533e6ef5",
+      "usd_cents": 24,
+      "yocto_near": "59259259259259259259259",
+      "payout_tx": "3LPYU3w7ukqw72UbgGSsXE99ADu4Hik5mZpDRzB5GAKe",
+      "split_hash": "dfdda66a543e41f3e909480ca0b0c1664b7c21b5c5437ef9300045386c050e8e",
+      "timestamp_ns": 1793847104026010600
+    },
+    {
+      "id": 10,
+      "payee": "footnote-demo-worm.testnet",
+      "answer_id": "a_201251a32513",
+      "usd_cents": 32,
+      "yocto_near": "79207920792079207920792",
+      "payout_tx": "NTBHZw3FWLbz1EAGFQkCxvocqrdfXacFxn6DCyzsMHe",
+      "split_hash": "23e7f19bd201a1d8c3111e8303c8953487054b7f10c91cda9e924b99a47e6203",
+      "timestamp_ns": 1793847539610153700
+    }
+  ],
+  "checks": [
+    {
+      "name": "NEAR rail is live on testnet",
+      "ok": true
+    },
+    {
+      "name": "answer completed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "at least one source was paid on the NEAR rail",
+      "ok": true,
+      "detail": "footnote-demo-worm.testnet"
+    },
+    {
+      "name": "worm-bin-weekly.demo: payout SUCCESS with a real tx hash",
+      "ok": true,
+      "detail": "NTBHZw3FWLbz1EAGFQkCxvocqrdfXacFxn6DCyzsMHe"
+    },
+    {
+      "name": "worm-bin-weekly.demo: chain confirms Transfer of 79207920792079207920792 yocto to footnote-demo-worm.testnet",
+      "ok": true,
+      "detail": "FINAL"
+    },
+    {
+      "name": "worm-bin-weekly.demo: on-chain receipt logged",
+      "ok": true,
+      "detail": "FXZRGT5SEVZTfduvrzFjKYh7EjZDvWfeRdWA85V89ESX"
+    },
+    {
+      "name": "contract returns the receipts",
+      "ok": true,
+      "detail": "11 on contract royalty-log.footnote-settle-ksroq0.testnet"
+    },
+    {
+      "name": "receipt #10 references payout tx and amount",
+      "ok": true,
+      "detail": "footnote-demo-worm.testnet 32c"
+    }
+  ]
+}
