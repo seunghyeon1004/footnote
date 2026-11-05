@@ -167,6 +167,12 @@ creator page. Undo with `--undo`.
 | `MAX_BATCH_CENTS` | `2000` | settlement batch cap |
 | `ESCROW_TTL_DAYS` | `30` | escrow refund horizon |
 
+## Demo video
+
+`docs/demo/footnote-demo.mp4` (1:57) was produced from real screenshots of the running app (real Claude, real PayPal
+sandbox checkout and payouts), narrated with macOS `say` and assembled by `docs/demo/build.py` (ffmpeg). Script:
+`docs/demo/narration.md`.
+
 ## Hosted demo (Render)
 
 `render.yaml` is a Render Blueprint (free plan): connect the repo, set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`,
@@ -188,6 +194,8 @@ Real-run transcripts (secrets never printed) are in [`docs/evidence/`](docs/evid
 
 * `real-claude-real-paypal-sandbox.txt`: `claude-sonnet-5-5` researched with tools, attributed four sources, stripped the
   injection on `quick-compost-hacks`, and the Claude settlement agent created a **real PayPal sandbox Payouts batch**.
+* `real-ui-run-sandbox-success.txt`: the demo-video run. A sandbox buyer approved Orders v2 in a browser, Claude settled, and
+  both payouts (an automatic one and a claimed-escrow one) reached **SUCCESS** in the PayPal sandbox.
 * `real-gemini-simulated-paypal.txt`: same flow with Gemini as provider, with the PayPal simulator.
 * `paypal-sandbox-smoke.txt`: `npm run smoke:paypal` against the real sandbox (OAuth, Orders v2 create, Payouts batch;
   a placeholder email correctly ends `UNCLAIMED`).

@@ -46,7 +46,7 @@ describe("end-to-end (simulator PayPal + fixture LLM)", () => {
     const by = Object.fromEntries(first.sources.map((s: any) => [s.domain, s]));
     // payee resolution, one per branch
     expect(by["compost-diaries.demo"].payee.method).toBe("meta_tag");
-    expect(by["compost-diaries.demo"].payee.email).toBe("compost-diaries@footnote-demo.test");
+    expect(by["compost-diaries.demo"].payee.email).toBe("sb-kw5k953722954@personal.example.com");
     expect(by["worm-bin-weekly.demo"].payee.method).toBe("footnote_json");
     expect(by["open-compost-toolkit.demo"].payee.method).toBe("funding_yml");
     expect(by["bokashi-bench.demo"].payee.method).toBe("paypal_me");

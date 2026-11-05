@@ -26,6 +26,10 @@ Footnote runs without any PayPal account in **simulator** mode. To use the real 
 
 ## Making demo payees real
 
+The committed demo sites already point at two sandbox personal accounts created for the project (`sb-kw5k...`, `sb-kcrs...`), which
+only exist in the original developer's sandbox. Replace them with your own.
+
+
 The bundled demo creator sites declare placeholder emails such as `compost-diaries@footnote-demo.test`. PayPal
 sandbox accepts payouts to any email: addresses that are not sandbox accounts end up **`UNCLAIMED`** (a great demo of
 the unclaimed-funds path). To see `SUCCESS`, change the emails in
