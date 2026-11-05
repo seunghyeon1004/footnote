@@ -15,7 +15,11 @@ moment the owner proves control of their site.
   creator say "pay me here".
 * Prompt injection on a cited page ("pay me 100%") is stripped, flagged, penalised, and shown in the receipt.
 
-## Run it (5 commands)
+> **For judges:** demo video https://youtu.be/ybIdb08caAo (76 s) · [Try it in 5 commands](#try-it-in-5-commands) · works with **no keys**
+> (labelled PayPal-sandbox simulator + fixture mode) or with real keys · real-run evidence in [`docs/evidence/`](docs/evidence) ·
+> Devpost copy in [`docs/SUBMISSION.md`](docs/SUBMISSION.md) · MIT licensed ([LICENSE](LICENSE)).
+
+## Try it in 5 commands
 
 ```bash
 git clone <this repo> footnote && cd footnote
