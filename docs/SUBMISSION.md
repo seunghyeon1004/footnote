@@ -50,7 +50,7 @@ TypeScript on Node 20+, Hono for the API, SQLite (better-sqlite3) for the ledger
 Agents are fine at deciding who deserves money; they should never be the last line of defence for moving it. Putting the invariants in the ledger (whole balance, known payee, minimum, cap, atomic reservation) made the agent's job small and the failures boring. Creator payment also needs a discovery standard as much as an API.
 
 ### What's next for Footnote
-Publish the payee declaration as a proper spec and a browser/CMS plugin; support PayPal PayPal IDs and phone payees; calibrate attribution against human judgments; pooled payouts for very small royalties; wiring the payout tools into an MCP server alongside PayPal's own.
+Publish the payee declaration as a proper spec and a browser/CMS plugin; support PayPal ID and phone payees; calibrate attribution against human judgments; pooled payouts for very small royalties; wiring the payout tools into an MCP server alongside PayPal's own.
 
 ## Built with (tags)
 typescript, node.js, hono, sqlite, anthropic-claude, claude-sonnet, paypal, paypal-checkout, paypal-orders-api, paypal-payouts-api, paypal-webhooks, ai-agents, tool-use, vitest, gsap, hyperframes

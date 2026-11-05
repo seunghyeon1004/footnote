@@ -22,7 +22,7 @@ moment the owner proves control of their site.
 ## Try it in 5 commands
 
 ```bash
-git clone <this repo> footnote && cd footnote
+git clone https://github.com/seunghyeon1004/footnote footnote && cd footnote
 npm install
 cp .env.example .env        # optional: add ANTHROPIC_API_KEY and PayPal sandbox keys
 npm run demo                # http://localhost:3000
