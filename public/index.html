@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#f5f3ed" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#171a1d" media="(prefers-color-scheme: dark)">
+    <meta name="description" content="An AI answer engine that gives credit, and pays it. Ask a question. Follow the sources. See the receipt.">
+    <title>Footnote — Answers that give back.</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%230070e0'/%3E%3Ctext x='12' y='29' font-family='Georgia,serif' font-size='32' fill='white'%3Ef%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="header-main wrap">
+        <a class="wordmark" href="#/" aria-label="Footnote home">footnote<span aria-hidden="true">[1]</span></a>
+        <nav class="main-nav" aria-label="Main navigation">
+          <a href="#/" data-route="ask">Ask</a>
+          <a href="#/creators" data-route="creators">Creators</a>
+          <a href="#/ledger" data-route="ledger">Ledger</a>
+        </nav>
+        <div class="credit-control">
+          <div class="credit-balance"><span>Available credit</span><strong id="balance">—</strong></div>
+          <button type="button" class="button button-small" id="add-credits" disabled>Add credits <span aria-hidden="true">+</span></button>
+        </div>
+      </div>
+      <div class="environment-bar">
+        <div class="wrap environment-inner">
+          <span class="environment-caption">An answer engine that pays its sources.</span>
+          <div id="mode-badges" class="mode-badges" aria-label="Connected services"><span class="mode-tag">Connecting…</span></div>
+        </div>
+      </div>
+      <div class="wrap" id="session-error"></div>
+    </header>
+
+    <main id="main" class="wrap main-content" tabindex="-1">
+      <div class="loading-state" role="status"><span class="spinner" aria-hidden="true"></span>Opening the notebook…</div>
+    </main>
+
+    <footer class="site-footer wrap">
+      <a class="wordmark footer-wordmark" href="#/">footnote<span aria-hidden="true">[1]</span></a>
+      <p>Knowledge has a source.<br><span>Now it has a receipt.</span></p>
+      <p class="footer-fine-print">Source royalties, settled through PayPal.<br>All amounts in USD.</p>
+    </footer>
+
+    <dialog id="credits-dialog" class="credits-dialog" aria-labelledby="credits-title">
+      <div class="dialog-header">
+        <span class="eyebrow">Keep good answers coming</span>
+        <button class="icon-button" type="button" id="close-credits" aria-label="Close add credits">×</button>
+      </div>
+      <h2 id="credits-title">A little credit.<br>A lot to discover.</h2>
+      <p class="muted">Choose a pack. Your knowledge fees fund the sources behind each answer.</p>
+      <form id="credits-form">
+        <fieldset class="pack-list" id="credit-packs"><legend class="sr-only">Credit pack</legend></fieldset>
+        <div id="checkout-error" class="inline-error" role="alert" hidden></div>
+        <button class="button checkout-button" id="checkout-submit" type="submit">Continue to PayPal <span aria-hidden="true">↗</span></button>
+        <p id="checkout-mode" class="fine-print"></p>
+      </form>
+    </dialog>
+
+    <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+    <noscript><div class="noscript">Footnote needs JavaScript to ask questions and show source royalties. Enable JavaScript and reload.</div></noscript>
+  </body>
+</html>

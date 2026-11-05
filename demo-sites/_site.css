@@ -1,0 +1,10 @@
+body{margin:0;font:18px/1.65 Georgia,serif;color:var(--ink,#222);background:var(--bg,#fbf8f1)}
+main{max-width:660px;margin:0 auto;padding:48px 22px 80px}
+header{border-bottom:3px solid var(--accent);padding-bottom:12px;margin-bottom:28px}
+header b{font:700 13px/1 system-ui;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:34px;line-height:1.15;margin:.3em 0 0}
+h2{font-size:22px;margin-top:1.6em}
+p.lede{font-size:20px;color:#555}
+footer{margin-top:56px;padding-top:14px;border-top:1px solid #ddd;font:13px/1.5 system-ui;color:#777}
+a{color:var(--accent)}
+.demo{background:#eef4ff;border:1px solid #c5d8fb;border-radius:8px;padding:8px 12px;font:13px/1.4 system-ui;color:#35507a;margin-bottom:24px}
