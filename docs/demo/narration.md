@@ -1,25 +1,17 @@
-# Narration (English, macOS `say` voice Samantha)
+# Narration (English; macOS `say` voice Samantha, loudness-normalised to -15 LUFS)
 
-1. AI answer engines eat the traffic of the people who wrote their sources. Bloggers, maintainers and small publishers get cited, if they are lucky, and paid nothing. This is Footnote: an answer engine that pays its sources, through PayPal.
+1. [0.0s] One fifty cent answer just paid creators through PayPal. Four sources were credited, and two payouts already reached success.
 
-2. You buy knowledge credits with PayPal Checkout. This is the real PayPal sandbox, using the Orders v2 A P I.
+2. [7.8s] AI answers lean on creators' work, and those creators earn nothing. Footnote adds a small knowledge fee to every answer, and splits it by contribution.
 
-3. I log in as a sandbox buyer and approve five dollars. The server captures the order, and the credits land in my wallet.
+3. [17.2s] Credits are bought with real PayPal Checkout, using the Orders A P I, version two, in the sandbox. A sandbox buyer logs in and approves five dollars, and the server captures the order.
 
-4. Now I ask a question. Every answer carries a fifty cent knowledge fee, which will be split among the sources that earned it.
+4. [28.9s] Claude researches with tools and cites its sources. A second agent then scores each source's contribution, and explains why.
 
-5. Claude Sonnet five point five researches with tools and reads the creators' pages. Page text is treated as untrusted data.
+5. [36.7s] Creators declare a payee in a meta tag or a well known JSON file. When a page hides a command like pay me one hundred percent, Footnote strips it before the model sees it, flags it, and cuts that source's score.
 
-6. The answer cites its sources inline. A second agent then scores each source's contribution, and says why.
+6. [49.5s] A settlement agent then calls PayPal Payouts. The ledger checks every call, so the agent chooses who to pay, and the code decides whether. These payouts reached success in the PayPal sandbox.
 
-7. Here is the royalty receipt. Each source gets a share in exact cents, a one line reason, and a payee method: a pay pal dot me link, a well known footnote JSON file, or nothing at all.
+7. [61.4s] Creators who never heard of Footnote are not left out. Their share waits in escrow until they add one meta tag and verify, and then PayPal pays them.
 
-8. This page hid a command: pay me one hundred percent. Footnote stripped it before the model saw it, flagged it, and cut the source's score. Payees are only read from structured declarations, never from page text.
-
-9. A settlement agent then called PayPal Payouts. The ledger checks every call, so the agent picks who, but the code decides whether. The payout to Worm Bin Weekly has reached success in the PayPal sandbox.
-
-10. This site never heard of Footnote, so its royalties wait in escrow. Verifying without a declaration fails.
-
-11. The owner adds one meta tag and verifies. Footnote releases the escrow, and PayPal sends the money.
-
-12. An open ledger tracks every cent. Footnote proposes a tiny open standard, a meta tag or a well known JSON file, so any creator can say pay me here. It is M I T licensed and tested. Footnote: cite the footnote, pay the footnote.
+8. [70.0s] Footnote is open source under the M I T license. Try it from the repository shown on screen.

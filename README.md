@@ -169,9 +169,10 @@ creator page. Undo with `--undo`.
 
 ## Demo video
 
-`docs/demo/footnote-demo.mp4` (1:57) was produced from real screenshots of the running app (real Claude, real PayPal
-sandbox checkout and payouts), narrated with macOS `say` and assembled by `docs/demo/build.py` (ffmpeg). Script:
-`docs/demo/narration.md`.
+`docs/demo/footnote-demo.mp4` (76 s) shows the real product: real 2x captures of the running app (real Claude, real PayPal
+sandbox checkout and payouts), rendered with code (HyperFrames: coded cursor, click ripples, zooms, captions) and narrated
+with local TTS. Script: `docs/demo/narration.md`. Verification (deterministic render, flicker, LUFS, whisper large-v3-turbo diff):
+`docs/demo/VERIFY.md`. Source and rebuild: `docs/demo/hf/`.
 
 ## Hosted demo (Render)
 

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><title>Footnote demo</title>
+<style>
+:root{--ink:#101828;--paper:#f4f3ef;--blue:#0070e0;--navy:#0b1220;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;background:var(--navy);overflow:hidden}
+#root{position:relative;width:1920px;height:1080px;background:radial-gradient(1400px 900px at 50% 40%,#16233b 0%,#0b1220 70%)}
+.shot{position:absolute;left:0;top:0;width:1920px;height:1080px}
+.win{position:absolute;left:160px;top:22px;width:1600px;height:1037px;border-radius:14px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08);background:var(--paper)}
+.zoomer{position:absolute;inset:0}
+.zoomer img{width:100%;height:100%;display:block}
+.cap{position:absolute;max-width:1320px;background:#fff;color:var(--ink);font:600 56px/1.2 Inter,system-ui,sans-serif;padding:16px 28px;border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.cap b{color:#fff;background:var(--blue);padding:0 10px;border-radius:8px;font-weight:700}
+.tag{position:absolute;right:190px;bottom:44px;color:#fff;background:rgba(11,18,32,.92);padding:12px 20px;border-radius:10px;font:600 28px/1 Inter,system-ui,sans-serif;letter-spacing:.02em}
+.cursor{position:absolute;left:0;top:0;width:44px;height:44px;margin:-4px 0 0 -4px}
+.ripple{position:absolute;left:0;top:0;width:90px;height:90px;margin:-45px 0 0 -45px;border-radius:50%;border:5px solid var(--blue);background:rgba(0,112,224,.18)}
+.cta{position:absolute;inset:0;background:radial-gradient(1200px 800px at 50% 45%,#16233b 0%,#0b1220 75%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;color:#fff;text-align:center;width:1920px;height:1080px}
+.cta .brand{font:700 150px/1 'Playfair Display',Georgia,serif;letter-spacing:-.02em}
+.cta .brand sup{font-size:60px;color:#6db3ff;margin-left:8px}
+.cta .line{font:500 52px/1.2 'Playfair Display',Georgia,serif;color:#dfe8f7}
+.cta .url{font:700 68px/1 Inter,system-ui,sans-serif;background:#fff;color:var(--ink);padding:22px 44px;border-radius:18px}
+.cta .sub{font:500 30px/1 Inter,system-ui,sans-serif;color:#9fb2d0}
+</style></head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="76.485" data-width="1920" data-height="1080">
+<div class="shot clip" id="sh1" data-start="0.000" data-duration="8.275" data-track-index="2" style="z-index:1"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh1-z" style="transform-origin:50.0% 62.0%"><div class="zoomer" data-layout-allow-overflow id="sh1-z2" style="transform-origin:50.0% 62.0%"><img src="assets/receipt1.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh1-c0" style="left:190px;top:70px">One 50¢ answer → <b data-layout-allow-occlusion data-layout-allow-overflow>4 creators</b> credited</div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh1-c1" style="left:190px;top:70px"><b data-layout-allow-occlusion data-layout-allow-overflow>2</b> payouts reached SUCCESS (PayPal sandbox)</div><div class="tag" id="sh1-tag">Real sandbox run · measured</div></div>
+<div class="shot clip" id="sh2" data-start="7.825" data-duration="9.825" data-track-index="1" style="z-index:2"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh2-z" style="transform-origin:50.0% 50.0%"><div class="zoomer" data-layout-allow-overflow id="sh2-z2" style="transform-origin:50.0% 50.0%"><img src="assets/hero0.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh2-c0" style="left:190px;top:800px">AI answers use creators' work and pay <b data-layout-allow-occlusion data-layout-allow-overflow>nothing</b></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh2-c1" style="left:190px;top:800px">Footnote: the fee is split by <b data-layout-allow-occlusion data-layout-allow-overflow>contribution</b></div></div>
+<div class="shot clip" id="sh3" data-start="17.199" data-duration="2.629" data-track-index="2" style="z-index:3"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh3-z" style="transform-origin:50.0% 50.0%"><div class="zoomer" data-layout-allow-overflow id="sh3-z2" style="transform-origin:50.0% 50.0%"><img src="assets/hero0.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh3-c0" style="left:190px;top:800px">Buy credits with <b data-layout-allow-occlusion data-layout-allow-overflow>PayPal Checkout</b></div><div class="ripple" id="sh3-rip"></div><div id="sh3-cur" style="position:absolute;left:0;top:0"><svg class="cursor" viewBox="0 0 24 24"><path d="M3 2l7.2 18.2 2.6-7.3 7.3-2.6z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></div></div>
+<div class="shot clip" id="sh4" data-start="19.528" data-duration="3.585" data-track-index="1" style="z-index:4"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh4-z" style="transform-origin:50.0% 50.0%"><div class="zoomer" data-layout-allow-overflow id="sh4-z2" style="transform-origin:50.0% 50.0%"><img src="assets/credits.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh4-c0" style="left:190px;top:90px">Orders <b data-layout-allow-occlusion data-layout-allow-overflow>v2</b> · $5.00 pack</div><div class="ripple" id="sh4-rip"></div><div id="sh4-cur" style="position:absolute;left:0;top:0"><svg class="cursor" viewBox="0 0 24 24"><path d="M3 2l7.2 18.2 2.6-7.3 7.3-2.6z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></div></div>
+<div class="shot clip" id="sh5" data-start="22.813" data-duration="2.390" data-track-index="2" style="z-index:5"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh5-z" style="transform-origin:50.0% 50.0%"><div class="zoomer" data-layout-allow-overflow id="sh5-z2" style="transform-origin:50.0% 50.0%"><img src="assets/pp-login.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh5-c0" style="left:190px;top:90px">Real PayPal <b data-layout-allow-occlusion data-layout-allow-overflow>sandbox</b> login</div></div>
+<div class="shot clip" id="sh6" data-start="24.902" data-duration="2.390" data-track-index="1" style="z-index:6"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh6-z" style="transform-origin:50.0% 50.0%"><div class="zoomer" data-layout-allow-overflow id="sh6-z2" style="transform-origin:50.0% 50.0%"><img src="assets/pp-pay.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh6-c0" style="left:190px;top:90px">Sandbox buyer approves <b data-layout-allow-occlusion data-layout-allow-overflow>$5.00</b></div></div>
+<div class="shot clip" id="sh7" data-start="26.992" data-duration="2.390" data-track-index="2" style="z-index:7"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh7-z" style="transform-origin:50.0% 50.0%"><div class="zoomer" data-layout-allow-overflow id="sh7-z2" style="transform-origin:50.0% 50.0%"><img src="assets/back.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh7-c0" style="left:190px;top:800px">Captured: <b data-layout-allow-occlusion data-layout-allow-overflow>$5.00</b> in credits</div><div class="tag" id="sh7-tag">Real sandbox run · measured</div></div>
+<div class="shot clip" id="sh8" data-start="28.932" data-duration="2.560" data-track-index="1" style="z-index:8"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh8-z" style="transform-origin:50.0% 50.0%"><div class="zoomer" data-layout-allow-overflow id="sh8-z2" style="transform-origin:50.0% 50.0%"><img src="assets/ask-filled.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh8-c0" style="left:190px;top:90px">Ask a question · <b data-layout-allow-occlusion data-layout-allow-overflow>50¢</b> fee</div></div>
+<div class="shot clip" id="sh9" data-start="31.192" data-duration="2.133" data-track-index="2" style="z-index:9"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh9-z" style="transform-origin:50.0% 50.0%"><div class="zoomer" data-layout-allow-overflow id="sh9-z2" style="transform-origin:50.0% 50.0%"><img src="assets/progress2.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh9-c0" style="left:190px;top:700px">Claude reads the <b data-layout-allow-occlusion data-layout-allow-overflow>creators' pages</b></div></div>
+<div class="shot clip" id="sh10" data-start="33.025" data-duration="2.133" data-track-index="1" style="z-index:10"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh10-z" style="transform-origin:50.0% 50.0%"><div class="zoomer" data-layout-allow-overflow id="sh10-z2" style="transform-origin:50.0% 50.0%"><img src="assets/answer.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh10-c0" style="left:190px;top:90px">Answer with inline <b data-layout-allow-occlusion data-layout-allow-overflow>[n]</b> citations</div></div>
+<div class="shot clip" id="sh11" data-start="34.858" data-duration="2.275" data-track-index="2" style="z-index:11"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh11-z" style="transform-origin:45.0% 35.0%"><div class="zoomer" data-layout-allow-overflow id="sh11-z2" style="transform-origin:45.0% 35.0%"><img src="assets/receipt1.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh11-c0" style="left:190px;top:800px">Each source: share + <b data-layout-allow-occlusion data-layout-allow-overflow>one-line reason</b></div></div>
+<div class="shot clip" id="sh12" data-start="36.683" data-duration="5.791" data-track-index="1" style="z-index:12"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh12-z" style="transform-origin:35.0% 60.0%"><div class="zoomer" data-layout-allow-overflow id="sh12-z2" style="transform-origin:35.0% 60.0%"><img src="assets/receipt1.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh12-c0" style="left:190px;top:70px">Payee from a <b data-layout-allow-occlusion data-layout-allow-overflow>meta tag</b> or <b data-layout-allow-occlusion data-layout-allow-overflow>JSON</b> file</div></div>
+<div class="shot clip" id="sh13" data-start="42.174" data-duration="7.818" data-track-index="2" style="z-index:13"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh13-z" style="transform-origin:40.0% 60.0%"><div class="zoomer" data-layout-allow-overflow id="sh13-z2" style="transform-origin:40.0% 60.0%"><img src="assets/injection.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh13-c0" style="left:190px;top:70px">Hidden command <b data-layout-allow-occlusion data-layout-allow-overflow>stripped</b></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh13-c1" style="left:190px;top:70px">Flagged, and the source is <b data-layout-allow-occlusion data-layout-allow-overflow>penalised</b></div></div>
+<div class="shot clip" id="sh14" data-start="49.542" data-duration="4.183" data-track-index="1" style="z-index:14"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh14-z" style="transform-origin:50.0% 72.0%"><div class="zoomer" data-layout-allow-overflow id="sh14-z2" style="transform-origin:50.0% 72.0%"><img src="assets/receipt-foot.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh14-c0" style="left:190px;top:70px">Claude agent calls <b data-layout-allow-occlusion data-layout-allow-overflow>PayPal Payouts</b></div></div>
+<div class="shot clip" id="sh15" data-start="53.425" data-duration="4.532" data-track-index="2" style="z-index:15"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh15-z" style="transform-origin:40.0% 25.0%"><div class="zoomer" data-layout-allow-overflow id="sh15-z2" style="transform-origin:40.0% 25.0%"><img src="assets/success.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh15-c0" style="left:190px;top:800px">Agent picks <b data-layout-allow-occlusion data-layout-allow-overflow>who</b> · code decides <b data-layout-allow-occlusion data-layout-allow-overflow>whether</b></div></div>
+<div class="shot clip" id="sh16" data-start="57.657" data-duration="4.183" data-track-index="1" style="z-index:16"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh16-z" style="transform-origin:50.0% 35.0%"><div class="zoomer" data-layout-allow-overflow id="sh16-z2" style="transform-origin:50.0% 35.0%"><img src="assets/worm-payouts.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh16-c0" style="left:190px;top:800px">Payout status: <b data-layout-allow-occlusion data-layout-allow-overflow>SUCCESS</b></div><div class="tag" id="sh16-tag">PayPal sandbox · measured</div></div>
+<div class="shot clip" id="sh17" data-start="61.390" data-duration="3.505" data-track-index="2" style="z-index:17"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh17-z" style="transform-origin:50.0% 50.0%"><div class="zoomer" data-layout-allow-overflow id="sh17-z2" style="transform-origin:50.0% 50.0%"><img src="assets/gnome-before.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh17-c0" style="left:190px;top:70px">Unclaimed creator → money in <b data-layout-allow-occlusion data-layout-allow-overflow>escrow</b></div><div class="ripple" id="sh17-rip"></div><div id="sh17-cur" style="position:absolute;left:0;top:0"><svg class="cursor" viewBox="0 0 24 24"><path d="M3 2l7.2 18.2 2.6-7.3 7.3-2.6z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></div></div>
+<div class="shot clip" id="sh18" data-start="64.595" data-duration="2.696" data-track-index="1" style="z-index:18"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh18-z" style="transform-origin:75.0% 85.0%"><div class="zoomer" data-layout-allow-overflow id="sh18-z2" style="transform-origin:75.0% 85.0%"><img src="assets/claim-fail.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh18-c0" style="left:190px;top:70px">No declaration yet: <b data-layout-allow-occlusion data-layout-allow-overflow>verify fails</b></div></div>
+<div class="shot clip" id="sh19" data-start="66.991" data-duration="3.505" data-track-index="2" style="z-index:19"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh19-z" style="transform-origin:50.0% 80.0%"><div class="zoomer" data-layout-allow-overflow id="sh19-z2" style="transform-origin:50.0% 80.0%"><img src="assets/claim-ok.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh19-c0" style="left:190px;top:70px">Add one <b data-layout-allow-occlusion data-layout-allow-overflow>meta tag</b> → released to PayPal</div></div>
+<div class="shot clip" id="sh20" data-start="70.046" data-duration="2.732" data-track-index="1" style="z-index:20"><div class="win"><div class="zoomer" data-layout-allow-overflow id="sh20-z" style="transform-origin:50.0% 50.0%"><div class="zoomer" data-layout-allow-overflow id="sh20-z2" style="transform-origin:50.0% 50.0%"><img src="assets/ledger.png"/></div></div></div><div class="cap" data-layout-allow-occlusion data-layout-allow-overflow id="sh20-c0" style="left:190px;top:800px">Open ledger: every cent <b data-layout-allow-occlusion data-layout-allow-overflow>tracked</b></div></div>
+<div class="shot clip" id="sh21" data-start="72.478" data-duration="4.007" data-track-index="2" style="z-index:21"><div class="cta" id="sh21-cta"><div class="brand">footnote<sup>[1]</sup></div><div class="line">Cite the footnote. Pay the footnote.</div><div class="url" id="sh21-url">github.com/seunghyeon1004/footnote</div><div class="sub">Open source · MIT · Claude + PayPal</div></div></div>
+<audio id="narr" src="narration.wav" data-start="0" data-duration="76.485" data-track-index="0" data-volume="0.7"></audio>
+</div>
+<script src="gsap.min.js"></script>
+<script>
+window.__timelines = window.__timelines || {};
+const tl = gsap.timeline({ paused: true });
+tl.fromTo("#sh1-z",{scale:1},{scale:1.3,duration:1.40,ease:"power2.inOut"},0.500);
+tl.fromTo("#sh1-z2",{scale:1},{scale:1.04,duration:6.27,ease:"sine.inOut"},1.950);
+tl.fromTo("#sh1-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},0.250);
+tl.fromTo("#sh1-c1",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"back.out(1.4)"},3.600);
+tl.to("#sh1-c0",{opacity:0,duration:0.2,ease:"power1.in"},3.550);
+tl.fromTo("#sh1-tag",{opacity:0},{opacity:1,duration:0.5,ease:"power1.out"},0.600);
+tl.fromTo("#sh2",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},7.825);
+tl.fromTo("#sh2-z",{scale:1.0},{scale:1.03,duration:9.52,ease:"sine.inOut"},7.925);
+tl.fromTo("#sh2-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},8.425);
+tl.fromTo("#sh2-c1",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"back.out(1.4)"},13.025);
+tl.to("#sh2-c0",{opacity:0,duration:0.2,ease:"power1.in"},12.975);
+tl.fromTo("#sh3",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},17.199);
+tl.fromTo("#sh3-z",{scale:1.0},{scale:1.03,duration:2.33,ease:"sine.inOut"},17.299);
+tl.fromTo("#sh3-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},17.799);
+tl.fromTo("#sh3-cur",{x:1842,y:269,opacity:0},{x:1582,y:89,opacity:1,duration:0.60,ease:"power2.inOut"},17.499);
+tl.fromTo("#sh3-cur",{scale:1},{scale:0.86,duration:0.12,ease:"power1.in"},18.249);
+tl.fromTo("#sh3-rip",{x:1582,y:89,scale:0.2,opacity:0.9},{x:1582,y:89,scale:1.5,opacity:0,duration:0.7,ease:"power2.out"},18.249);
+tl.fromTo("#sh4",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},19.528);
+tl.fromTo("#sh4-z",{scale:1.0},{scale:1.03,duration:3.28,ease:"sine.inOut"},19.628);
+tl.fromTo("#sh4-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},20.128);
+tl.fromTo("#sh4-cur",{x:1220,y:950,opacity:0},{x:960,y:770,opacity:1,duration:0.75,ease:"power2.inOut"},19.878);
+tl.fromTo("#sh4-cur",{scale:1},{scale:0.86,duration:0.12,ease:"power1.in"},20.778);
+tl.fromTo("#sh4-rip",{x:960,y:770,scale:0.2,opacity:0.9},{x:960,y:770,scale:1.5,opacity:0,duration:0.7,ease:"power2.out"},20.778);
+tl.fromTo("#sh5",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},22.813);
+tl.fromTo("#sh5-z",{scale:1.0},{scale:1.03,duration:2.09,ease:"sine.inOut"},22.913);
+tl.fromTo("#sh5-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},23.413);
+tl.fromTo("#sh6",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},24.902);
+tl.fromTo("#sh6-z",{scale:1.0},{scale:1.03,duration:2.09,ease:"sine.inOut"},25.002);
+tl.fromTo("#sh6-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},25.502);
+tl.fromTo("#sh7",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},26.992);
+tl.fromTo("#sh7-z",{scale:1.0},{scale:1.03,duration:2.09,ease:"sine.inOut"},27.092);
+tl.fromTo("#sh7-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},27.592);
+tl.fromTo("#sh7-tag",{opacity:0},{opacity:1,duration:0.5,ease:"power1.out"},27.592);
+tl.fromTo("#sh8",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},28.932);
+tl.fromTo("#sh8-z",{scale:1.0},{scale:1.03,duration:2.26,ease:"sine.inOut"},29.032);
+tl.fromTo("#sh8-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},29.532);
+tl.fromTo("#sh9",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},31.192);
+tl.fromTo("#sh9-z",{scale:1.0},{scale:1.03,duration:1.83,ease:"sine.inOut"},31.292);
+tl.fromTo("#sh9-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},31.792);
+tl.fromTo("#sh10",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},33.025);
+tl.fromTo("#sh10-z",{scale:1.0},{scale:1.03,duration:1.83,ease:"sine.inOut"},33.125);
+tl.fromTo("#sh10-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},33.625);
+tl.fromTo("#sh11",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},34.858);
+tl.fromTo("#sh11-z",{scale:1},{scale:1.45,duration:1.14,ease:"power2.inOut"},35.358);
+tl.fromTo("#sh11-z2",{scale:1},{scale:1.04,duration:0.50,ease:"sine.inOut"},36.808);
+tl.fromTo("#sh11-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},35.458);
+tl.fromTo("#sh12",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},36.683);
+tl.fromTo("#sh12-z",{scale:1},{scale:1.4,duration:1.40,ease:"power2.inOut"},37.183);
+tl.fromTo("#sh12-z2",{scale:1},{scale:1.04,duration:3.79,ease:"sine.inOut"},38.633);
+tl.fromTo("#sh12-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},37.283);
+tl.fromTo("#sh13",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},42.174);
+tl.fromTo("#sh13-z",{scale:1},{scale:1.35,duration:1.40,ease:"power2.inOut"},42.674);
+tl.fromTo("#sh13-z2",{scale:1},{scale:1.04,duration:5.82,ease:"sine.inOut"},44.124);
+tl.fromTo("#sh13-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},42.774);
+tl.fromTo("#sh13-c1",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"back.out(1.4)"},46.574);
+tl.to("#sh13-c0",{opacity:0,duration:0.2,ease:"power1.in"},46.524);
+tl.fromTo("#sh14",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},49.542);
+tl.fromTo("#sh14-z",{scale:1},{scale:1.35,duration:1.40,ease:"power2.inOut"},50.042);
+tl.fromTo("#sh14-z2",{scale:1},{scale:1.04,duration:2.18,ease:"sine.inOut"},51.492);
+tl.fromTo("#sh14-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},50.142);
+tl.fromTo("#sh15",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},53.425);
+tl.fromTo("#sh15-z",{scale:1},{scale:1.3,duration:1.40,ease:"power2.inOut"},53.925);
+tl.fromTo("#sh15-z2",{scale:1},{scale:1.04,duration:2.53,ease:"sine.inOut"},55.375);
+tl.fromTo("#sh15-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},54.025);
+tl.fromTo("#sh16",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},57.657);
+tl.fromTo("#sh16-z",{scale:1},{scale:1.3,duration:1.40,ease:"power2.inOut"},58.157);
+tl.fromTo("#sh16-z2",{scale:1},{scale:1.04,duration:2.18,ease:"sine.inOut"},59.607);
+tl.fromTo("#sh16-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},58.257);
+tl.fromTo("#sh16-tag",{opacity:0},{opacity:1,duration:0.5,ease:"power1.out"},58.257);
+tl.fromTo("#sh17",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},61.390);
+tl.fromTo("#sh17-z",{scale:1.0},{scale:1.03,duration:3.21,ease:"sine.inOut"},61.490);
+tl.fromTo("#sh17-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},61.990);
+tl.fromTo("#sh17-cur",{x:1338,y:1014,opacity:0},{x:1078,y:834,opacity:1,duration:0.70,ease:"power2.inOut"},61.690);
+tl.fromTo("#sh17-cur",{scale:1},{scale:0.86,duration:0.12,ease:"power1.in"},62.540);
+tl.fromTo("#sh17-rip",{x:1078,y:834,scale:0.2,opacity:0.9},{x:1078,y:834,scale:1.5,opacity:0,duration:0.7,ease:"power2.out"},62.540);
+tl.fromTo("#sh18",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},64.595);
+tl.fromTo("#sh18-z",{scale:1},{scale:1.3,duration:1.35,ease:"power2.inOut"},65.095);
+tl.fromTo("#sh18-z2",{scale:1},{scale:1.04,duration:0.70,ease:"sine.inOut"},66.545);
+tl.fromTo("#sh18-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},65.195);
+tl.fromTo("#sh19",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},66.991);
+tl.fromTo("#sh19-z",{scale:1},{scale:1.3,duration:1.40,ease:"power2.inOut"},67.491);
+tl.fromTo("#sh19-z2",{scale:1},{scale:1.04,duration:1.51,ease:"sine.inOut"},68.941);
+tl.fromTo("#sh19-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},67.591);
+tl.fromTo("#sh20",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},70.046);
+tl.fromTo("#sh20-z",{scale:1.0},{scale:1.03,duration:2.43,ease:"sine.inOut"},70.146);
+tl.fromTo("#sh20-c0",{y:24,opacity:0},{y:0,opacity:1,duration:0.45,ease:"power3.out"},70.646);
+tl.fromTo("#sh21",{opacity:0},{opacity:1,duration:0.3,ease:"power1.out"},72.478);
+tl.fromTo("#sh21-url",{y:30,opacity:0},{y:0,opacity:1,duration:0.6,ease:"expo.out"},73.378);
+window.__timelines["main"] = tl;
+</script>
+</body></html>

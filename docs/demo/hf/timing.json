@@ -1,0 +1,61 @@
+{
+ "total": 76.48528344671203,
+ "scenes": [
+  {
+   "id": "s1",
+   "say": "One fifty cent answer just paid creators through PayPal. Four sources were credited, and two payouts already reached success.",
+   "start": 0.0,
+   "dur": 8.27451247165533,
+   "narr": 7.374512471655329
+  },
+  {
+   "id": "s2",
+   "say": "AI answers lean on creators' work, and those creators earn nothing. Footnote adds a small knowledge fee to every answer, and splits it by contribution.",
+   "start": 7.824512471655329,
+   "dur": 9.824580498866213,
+   "narr": 8.924580498866213
+  },
+  {
+   "id": "s3",
+   "say": "Credits are bought with real PayPal Checkout, using the Orders A P I, version two, in the sandbox. A sandbox buyer logs in and approves five dollars, and the server captures the order.",
+   "start": 17.199092970521544,
+   "dur": 12.18294784580499,
+   "narr": 11.282947845804989
+  },
+  {
+   "id": "s4",
+   "say": "Claude researches with tools and cites its sources. A second agent then scores each source's contribution, and explains why.",
+   "start": 28.932040816326534,
+   "dur": 8.200725623582766,
+   "narr": 7.300725623582767
+  },
+  {
+   "id": "s5",
+   "say": "Creators declare a payee in a meta tag or a well known JSON file. When a page hides a command like pay me one hundred percent, Footnote strips it before the model sees it, flags it, and cuts that source's score.",
+   "start": 36.6827664399093,
+   "dur": 13.309115646258503,
+   "narr": 12.409115646258503
+  },
+  {
+   "id": "s6",
+   "say": "A settlement agent then calls PayPal Payouts. The ledger checks every call, so the agent chooses who to pay, and the code decides whether. These payouts reached success in the PayPal sandbox.",
+   "start": 49.5418820861678,
+   "dur": 12.297687074829932,
+   "narr": 11.397687074829932
+  },
+  {
+   "id": "s7",
+   "say": "Creators who never heard of Footnote are not left out. Their share waits in escrow until they add one meta tag and verify, and then PayPal pays them.",
+   "start": 61.38956916099774,
+   "dur": 9.106303854875284,
+   "narr": 8.206303854875284
+  },
+  {
+   "id": "s8",
+   "say": "Footnote is open source under the M I T license. Try it from the repository shown on screen.",
+   "start": 70.04587301587303,
+   "dur": 6.439410430839001,
+   "narr": 5.539410430839002
+  }
+ ]
+}
